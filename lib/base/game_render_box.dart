@@ -61,6 +61,6 @@ class GameRenderBox extends RenderBox {
   @override
   void paint(PaintingContext context, Offset offset) {
     context.canvas.translate(offset.dx, offset.dy);
-    game.render(context.canvas);
+    game.render(context.canvas, size);
   }
 }

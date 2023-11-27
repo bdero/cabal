@@ -22,7 +22,7 @@ abstract class Game {
   void update(double dt);
 
   /// Draw the game. Called once per frame after update.
-  void render(Canvas canvas);
+  void render(Canvas canvas, Size size);
 
   late OverlayCallback _overlayCallback;
   void initCallbacks(OverlayCallback overlayCallback) {

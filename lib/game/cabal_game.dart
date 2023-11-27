@@ -24,7 +24,9 @@ class CabalGame extends Game {
   }
 
   @override
-  void render(Canvas canvas) {
+  void render(Canvas canvas, Size size) {
     debugPrint("render");
+    final paint = Paint()..color = Colors.white;
+    canvas.drawCircle(Offset(size.width, size.height), 100, paint);
   }
 }
