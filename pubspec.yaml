@@ -15,6 +15,7 @@ dependencies:
     path: ../../engine/src/flutter/lib/gpu
   flutter_bullet:
     path: deps/flutter_bullet
+  vector_math: ^2.1.4
 
 dev_dependencies:
   flutter_test:

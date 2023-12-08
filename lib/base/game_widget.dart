@@ -10,11 +10,11 @@ typedef OverlayWidgetFactory = Widget Function(Game);
 class GameWidget extends StatefulWidget {
   const GameWidget(
       {required this.gameFactory,
-      this.overlayMap = const <String, OverlayWidgetFactory>{},
+      this.overlays = const <String, OverlayWidgetFactory>{},
       super.key});
 
   final GameFactory gameFactory;
-  final Map<String, OverlayWidgetFactory> overlayMap;
+  final Map<String, OverlayWidgetFactory> overlays;
 
   @override
   State<GameWidget> createState() => _GameWidgetState();
@@ -29,7 +29,7 @@ class _GameWidgetState extends State<GameWidget> {
       return true;
     }
 
-    final overlay = widget.overlayMap[name];
+    final overlay = widget.overlays[name];
     if (overlay == null) {
       return false;
     }

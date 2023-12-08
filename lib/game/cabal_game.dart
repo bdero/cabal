@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bullet/flutter_bullet.dart' as phys;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
+import 'package:vector_math/vector_math_64.dart' as vm64;
 
 ByteData float32(List<double> values) {
   return Float32List.fromList(values).buffer.asByteData();
@@ -25,6 +26,7 @@ ByteData float32Mat(Matrix4 matrix) {
 class CabalGame extends Game {
   double elapsedSeconds = 0;
   phys.World? world;
+  vm.Vector3 cubeOrigin = vm.Vector3.zero();
 
   @override
   Future<void> preload() async {
@@ -32,23 +34,31 @@ class CabalGame extends Game {
     return Future.value();
   }
 
+  late phys.BoxShape box;
+  late phys.StaticPlaneShape plane;
+  late phys.RigidBody dynamicBody;
+  late phys.RigidBody floorBody;
+
   @override
   void start() {
     world = phys.World();
 
+    // TODO: Physics crashes at around the 16 tick mark if we don't hold on to
+    //       all resources. We don't need to store locals once this is fixed.
+
     // Create a unit box
-    var box = phys.BoxShape(vm.Vector3(.5, .5, .5));
+    box = phys.BoxShape(vm.Vector3(.5, .5, .5));
 
     // Create a static plane in the X-Z axis.
-    var plane = phys.StaticPlaneShape(vm.Vector3(0, 1, 0), 0);
+    plane = phys.StaticPlaneShape(vm.Vector3(0, 1, 0), 0);
 
     // Make a dynamic body with mass 1.0 with the box shape.
     // Place it 10 units in the air.
-    var dynamicBody = phys.RigidBody(1.0, box, vm.Vector3(0, 10, 0));
+    dynamicBody = phys.RigidBody(1.0, box, vm.Vector3(0, 10, 0));
 
     // Make a static body (mass == 0.0) with the static plane shape
     // place it at the origin.
-    var floorBody = phys.RigidBody(0.0, plane, vm.Vector3(0, 0, 0));
+    floorBody = phys.RigidBody(0.0, plane, vm.Vector3(0, 0, 0));
 
     world!.addBody(dynamicBody);
     world!.addBody(floorBody);
@@ -56,13 +66,16 @@ class CabalGame extends Game {
 
   @override
   void fixedUpdate() {
-    // TODO: This is crashing at around at around the 16 tick mark. o_O
-    //world?.step(Game.fixedTickIntervalSeconds);
+    debugPrint("step");
+
+    world?.step(Game.fixedTickIntervalSeconds);
+    cubeOrigin = dynamicBody.origin;
   }
 
   @override
   void update(double dt) {
     debugPrint("update: dt=$dt");
+
     elapsedSeconds += dt;
   }
 
@@ -139,15 +152,17 @@ class CabalGame extends Game {
       3, 2, 7, 7, 2, 6, //
       4, 5, 0, 0, 5, 1, //
     ]));
-    final mvp = transients.emplace(float32Mat(Matrix4(
+    final mvp = transients.emplace(float32Mat(vm64.Matrix4(
           0.5 * size.height / size.width, 0, 0, 0, //
           0, 0.5, 0, 0, //
           0, 0, 0.2, 0, //
           0, 0, 0.5, 1, //
         ) *
-        Matrix4.rotationX(elapsedSeconds) *
-        Matrix4.rotationY(elapsedSeconds * 1.27) *
-        Matrix4.rotationZ(elapsedSeconds * 0.783)));
+        vm64.Matrix4.rotationX(elapsedSeconds) *
+        vm64.Matrix4.rotationY(elapsedSeconds * 1.27) *
+        vm64.Matrix4.rotationZ(elapsedSeconds * 0.783) *
+        vm64.Matrix4.translation(
+            vm64.Vector3(cubeOrigin.x, -cubeOrigin.y, cubeOrigin.z))));
 
     /// Bind the vertex and index buffer.
     encoder.bindVertexBuffer(vertices, 8);
