@@ -1,8 +1,6 @@
-import 'package:cabal/base/game.dart';
 import 'package:cabal/base/game_widget.dart';
 import 'package:cabal/game/cabal_game.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 void main() {
   runApp(const AppWidget());

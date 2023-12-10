@@ -117,7 +117,7 @@ class CabalGame extends Game {
     final encoder = commandBuffer.createRenderPass(renderTarget);
 
     /// Load a shader bundle asset.
-    final library = gpu.ShaderLibrary.fromAsset('TestLibrary')!;
+    final library = gpu.ShaderLibrary.fromAsset('gen/cabal.shaderbundle')!;
 
     /// Create a RenderPipeline using shaders from the asset.
     final vertex = library['TextureVertex']!;
@@ -158,8 +158,8 @@ class CabalGame extends Game {
         ) *
         vm64.Matrix4.rotationX(elapsedSeconds) *
         vm64.Matrix4.rotationY(elapsedSeconds * 1.27) *
-        vm64.Matrix4.rotationZ(elapsedSeconds * 0.783) *
-        vm64.Matrix4.fromList(dynamicBody.xform.storage)));
+        vm64.Matrix4.rotationZ(elapsedSeconds * 0.783)));
+        //vm64.Matrix4.fromList(dynamicBody.xform.storage)));
 
     /// Bind the vertex and index buffer.
     encoder.bindVertexBuffer(vertices, 8);

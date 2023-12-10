@@ -1,4 +1,3 @@
-import 'package:cabal/base/game_widget.dart';
 import 'package:flutter/material.dart';
 
 typedef OverlayCallback = bool Function(Game game, String name);
