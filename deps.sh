@@ -17,12 +17,18 @@ function build_physics {
   dart run ffigen --config ffigen.yaml
   popd
 
-  # Coordinate with the macOS/iOS `DynamicLibrary.open` path in
+  # The code that loads the native lib via `DynamicLibrary.open` is located in
   # `deps/flutter_bullet/lib/flutter_bullet.dart`.
+  #
+  # Copy the compiled lib to gen, renaming it to the lookup name.
+  #
+  # The XCode project has a "Copy Files" build phase which grabs
+  # `gen/libflutter_bullet.dylib` and places it under `//Frameworks/native`
+  # within the app bundle.
   mkdir -p $SCRIPT_DIR/build/macos/Build/Products/Debug/cabal.app/Contents/Frameworks/native
   cp \
     $SCRIPT_DIR/deps/flutter_bullet/native/libflutter_bullet.1.0.0.dylib \
-    $SCRIPT_DIR/build/macos/Build/Products/Debug/cabal.app/Contents/Frameworks/native/libflutter_bullet.dylib
+    $SCRIPT_DIR/gen/libflutter_bullet.dylib
 }
 
 function build_shaders {

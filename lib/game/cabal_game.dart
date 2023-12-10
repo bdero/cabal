@@ -26,10 +26,16 @@ ByteData float32Mat(Matrix4 matrix) {
 class CabalGame extends Game {
   double elapsedSeconds = 0;
   phys.World? world;
+  gpu.ShaderLibrary? shaderLibrary;
 
   @override
   Future<void> preload() async {
     debugPrint("preloading");
+    /// Load a shader bundle asset.
+    shaderLibrary = gpu.ShaderLibrary.fromAsset('gen/cabal.shaderbundle')!;
+    if (shaderLibrary == null) {
+      throw Exception("FATAL: Failed to load shader library!");
+    }
     return Future.value();
   }
 
@@ -116,12 +122,9 @@ class CabalGame extends Game {
     /// encoding commands.
     final encoder = commandBuffer.createRenderPass(renderTarget);
 
-    /// Load a shader bundle asset.
-    final library = gpu.ShaderLibrary.fromAsset('gen/cabal.shaderbundle')!;
-
     /// Create a RenderPipeline using shaders from the asset.
-    final vertex = library['TextureVertex']!;
-    final fragment = library['TextureFragment']!;
+    final vertex = shaderLibrary!['TextureVertex']!;
+    final fragment = shaderLibrary!['TextureFragment']!;
     final pipeline = gpu.gpuContext.createRenderPipeline(vertex, fragment);
 
     encoder.bindPipeline(pipeline);
