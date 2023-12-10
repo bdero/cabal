@@ -1,11 +1,12 @@
+import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:cabal/base/camera.dart';
 import 'package:cabal/base/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bullet/physics3d.dart' as phys;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
-import 'package:vector_math/vector_math_64.dart' as vm64;
 
 ByteData float32(List<double> values) {
   return Float32List.fromList(values).buffer.asByteData();
@@ -19,8 +20,8 @@ ByteData uint32(List<int> values) {
   return Uint32List.fromList(values).buffer.asByteData();
 }
 
-ByteData float32Mat(Matrix4 matrix) {
-  return Float32List.fromList(matrix.storage).buffer.asByteData();
+ByteData float32Mat(vm.Matrix4 matrix) {
+  return matrix.storage.buffer.asByteData();
 }
 
 class CabalGame extends Game {
@@ -31,6 +32,7 @@ class CabalGame extends Game {
   @override
   Future<void> preload() async {
     debugPrint("preloading");
+
     /// Load a shader bundle asset.
     shaderLibrary = gpu.ShaderLibrary.fromAsset('gen/cabal.shaderbundle')!;
     if (shaderLibrary == null) {
@@ -39,31 +41,27 @@ class CabalGame extends Game {
     return Future.value();
   }
 
-  late phys.BoxShape box;
-  late phys.StaticPlaneShape plane;
   late phys.RigidBody dynamicBody;
-  late phys.RigidBody floorBody;
 
   @override
   void start() {
     world = phys.World();
 
-    // TODO: Physics crashes at around the 16 tick mark if we don't hold on to
-    //       all resources. We don't need to store locals once this is fixed.
-
-    // Create a unit box
-    box = phys.BoxShape(vm.Vector3(.5, .5, .5));
+    // Create a 2x2x2 box.
+    var box = phys.BoxShape(vm.Vector3(1, 1, 1));
 
     // Create a static plane in the X-Z axis.
-    plane = phys.StaticPlaneShape(vm.Vector3(0, 1, 0), 0);
+    var plane = phys.StaticPlaneShape(vm.Vector3(0, 1, 0), 0);
 
     // Make a dynamic body with mass 1.0 with the box shape.
     // Place it 10 units in the air.
-    dynamicBody = phys.RigidBody(1.0, box)..xform.origin = vm.Vector3(0, 10, 0);
+    dynamicBody = phys.RigidBody(1.0, box)
+      ..xform.origin = vm.Vector3(0, 10, 0)
+      ..xform.rotation = vm.Quaternion.euler(1, 1, 1);
 
     // Make a static body (mass == 0.0) with the static plane shape
     // place it at the origin.
-    floorBody = phys.RigidBody(0.0, plane);
+    var floorBody = phys.RigidBody(0.0, plane);
 
     world!.addBody(dynamicBody);
     world!.addBody(floorBody);
@@ -153,16 +151,26 @@ class CabalGame extends Game {
       3, 2, 7, 7, 2, 6, //
       4, 5, 0, 0, 5, 1, //
     ]));
-    final mvp = transients.emplace(float32Mat(vm64.Matrix4(
-          0.5 * size.height / size.width, 0, 0, 0, //
-          0, 0.5, 0, 0, //
-          0, 0, 0.2, 0, //
-          0, 0, 0.5, 1, //
-        ) *
-        vm64.Matrix4.rotationX(elapsedSeconds) *
-        vm64.Matrix4.rotationY(elapsedSeconds * 1.27) *
-        vm64.Matrix4.rotationZ(elapsedSeconds * 0.783)));
-        //vm64.Matrix4.fromList(dynamicBody.xform.storage)));
+
+    var viewProjectionMatrix = Camera(
+            fovRadiansY: 60 * vm.degrees2Radians,
+            position: vm.Vector3(
+                  sin(elapsedSeconds / 2),
+                  1,
+                  cos(elapsedSeconds / 2),
+                ) *
+                8.0,
+            target: vm.Vector3(0, 2, 0))
+        .getTransform(size.width / size.height);
+    var modelMatrix = vm.Matrix4.fromFloat32List(dynamicBody.xform.storage);
+
+    // Hack to fix the physics transform. Make the translation positional.
+    modelMatrix = modelMatrix.clone()..setEntry(3, 3, 1);
+
+    final mvp =
+        transients.emplace(float32Mat(viewProjectionMatrix * modelMatrix));
+
+    debugPrint(modelMatrix.toString());
 
     /// Bind the vertex and index buffer.
     encoder.bindVertexBuffer(vertices, 8);
