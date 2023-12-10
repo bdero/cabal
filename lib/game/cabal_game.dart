@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:cabal/base/game.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bullet/flutter_bullet.dart' as phys;
+import 'package:flutter_bullet/physics3d.dart' as phys;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:vector_math/vector_math_64.dart' as vm64;
@@ -26,7 +26,6 @@ ByteData float32Mat(Matrix4 matrix) {
 class CabalGame extends Game {
   double elapsedSeconds = 0;
   phys.World? world;
-  vm.Vector3 cubeOrigin = vm.Vector3.zero();
 
   @override
   Future<void> preload() async {
@@ -54,11 +53,11 @@ class CabalGame extends Game {
 
     // Make a dynamic body with mass 1.0 with the box shape.
     // Place it 10 units in the air.
-    dynamicBody = phys.RigidBody(1.0, box, vm.Vector3(0, 10, 0));
+    dynamicBody = phys.RigidBody(1.0, box)..xform.origin = vm.Vector3(0, 10, 0);
 
     // Make a static body (mass == 0.0) with the static plane shape
     // place it at the origin.
-    floorBody = phys.RigidBody(0.0, plane, vm.Vector3(0, 0, 0));
+    floorBody = phys.RigidBody(0.0, plane);
 
     world!.addBody(dynamicBody);
     world!.addBody(floorBody);
@@ -69,7 +68,6 @@ class CabalGame extends Game {
     debugPrint("step");
 
     world?.step(Game.fixedTickIntervalSeconds);
-    cubeOrigin = dynamicBody.origin;
   }
 
   @override
@@ -161,8 +159,7 @@ class CabalGame extends Game {
         vm64.Matrix4.rotationX(elapsedSeconds) *
         vm64.Matrix4.rotationY(elapsedSeconds * 1.27) *
         vm64.Matrix4.rotationZ(elapsedSeconds * 0.783) *
-        vm64.Matrix4.translation(
-            vm64.Vector3(cubeOrigin.x, -cubeOrigin.y, cubeOrigin.z))));
+        vm64.Matrix4.fromList(dynamicBody.xform.storage)));
 
     /// Bind the vertex and index buffer.
     encoder.bindVertexBuffer(vertices, 8);
