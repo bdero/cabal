@@ -37,7 +37,11 @@ function build_shaders {
     --include=$ENGINE_DIR/flutter/impeller/compiler/shader_lib \
     --runtime-stage-metal \
     --sl=gen/cabal.shaderbundle \
-    --shader-bundle=\{\"TextureFragment\":\ \{\"type\":\ \"fragment\",\ \"file\":\ \"$SCRIPT_DIR/shaders/flutter_gpu_texture.frag\"\},\ \"TextureVertex\":\ \{\"type\":\ \"vertex\",\ \"file\":\ \"$SCRIPT_DIR/shaders/flutter_gpu_texture.vert\"\}\}
+    --shader-bundle=\{\
+\"TextureFragment\":\ \{\"type\":\ \"fragment\",\ \"file\":\ \"$SCRIPT_DIR/shaders/flutter_gpu_texture.frag\"\},\ \
+\"TextureVertex\":\ \{\"type\":\ \"vertex\",\ \"file\":\ \"$SCRIPT_DIR/shaders/flutter_gpu_texture.vert\"\},\ \
+\"MeshFragment\":\ \{\"type\":\ \"fragment\",\ \"file\":\ \"$SCRIPT_DIR/shaders/mesh_example.frag\"\},\ \
+\"MeshVertex\":\ \{\"type\":\ \"vertex\",\ \"file\":\ \"$SCRIPT_DIR/shaders/mesh_example.vert\"\}\}
 }
 
 build_physics

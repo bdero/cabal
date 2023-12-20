@@ -16,6 +16,8 @@ dependencies:
   flutter_bullet:
     path: deps/flutter_bullet
   vector_math: ^2.1.4
+  image: ^4.1.3
+  flat_buffers: ^23.5.26
 
 dev_dependencies:
   flutter_test:
@@ -28,3 +30,7 @@ flutter:
 
   assets:
     - gen/cabal.shaderbundle
+    - assets/flutter_logo.model
+    - assets/flutter_logo_BaseColor_rgba.png
+    - assets/flutter_logo_Normal_rgba.png
+    - assets/flutter_logo_OcclusionRoughnessMetallic_rgba.png
