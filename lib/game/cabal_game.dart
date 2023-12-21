@@ -31,8 +31,6 @@ class CabalGame extends Game {
 
   @override
   Future<void> preload() async {
-    debugPrint("preloading");
-
     /// Load a shader bundle asset.
     shaderLibrary = gpu.ShaderLibrary.fromAsset('gen/cabal.shaderbundle')!;
     if (shaderLibrary == null) {
@@ -69,15 +67,11 @@ class CabalGame extends Game {
 
   @override
   void fixedUpdate() {
-    debugPrint("step");
-
     world?.step(Game.fixedTickIntervalSeconds);
   }
 
   @override
   void update(double dt) {
-    debugPrint("update: dt=$dt");
-
     elapsedSeconds += dt;
   }
 
@@ -169,8 +163,6 @@ class CabalGame extends Game {
 
     final mvp =
         transients.emplace(float32Mat(viewProjectionMatrix * modelMatrix));
-
-    debugPrint(modelMatrix.toString());
 
     /// Bind the vertex and index buffer.
     encoder.bindVertexBuffer(vertices, 8);
