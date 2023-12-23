@@ -21,14 +21,17 @@ class GameRenderBox extends RenderBox {
         Duration.millisecondsPerSecond;
     _previousTime = currentTime;
 
-    _remainingFixedUpdateSeconds += dt;
+    if (game.enableFixedUpdate) {
+      _remainingFixedUpdateSeconds += dt;
 
-    final int fixedTicks =
-        _remainingFixedUpdateSeconds ~/ Game.fixedTickIntervalSeconds;
-    for (int i = 0; i < fixedTicks; i++) {
-      game.fixedUpdate();
+      final int fixedTicks =
+          _remainingFixedUpdateSeconds ~/ Game.fixedTickIntervalSeconds;
+      for (int i = 0; i < fixedTicks; i++) {
+        game.fixedUpdate();
+      }
+      _remainingFixedUpdateSeconds -=
+          fixedTicks * Game.fixedTickIntervalSeconds;
     }
-    _remainingFixedUpdateSeconds -= fixedTicks * Game.fixedTickIntervalSeconds;
 
     game.update(dt);
 

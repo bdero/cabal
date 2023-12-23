@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 
 typedef OverlayCallback = bool Function(Game game, String name);
 
-/// Interface for implementing a game.
+/// Mostly abstract interface for implementing a game.
+///
+/// The only implemented functionality this class provides is overlay
+/// management.
 abstract class Game {
   // 4 fixedUpdate ticks per frame at 60 fps refresh rate.
   static const double fixedTickIntervalSeconds = 1 / 240;
+
+  bool enableFixedUpdate = true;
 
   Future<void> preload();
 
@@ -28,7 +33,7 @@ abstract class Game {
     _overlayCallback = overlayCallback;
   }
 
-  bool SetOverlay(String name) {
+  bool setOverlay(String name) {
     return _overlayCallback(this, name);
   }
 }

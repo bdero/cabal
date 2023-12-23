@@ -1,12 +1,19 @@
-import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cabal/base/camera.dart';
-import 'package:cabal/base/game.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bullet/physics3d.dart' as phys;
 import 'package:flutter_gpu/gpu.dart' as gpu;
+import 'package:oxygen/oxygen.dart' as oxy;
 import 'package:vector_math/vector_math.dart' as vm;
+
+import 'package:cabal/base/components/camera_component.dart';
+import 'package:cabal/base/components/mesh_component.dart';
+import 'package:cabal/base/components/rigid_body_component.dart';
+import 'package:cabal/base/geometry.dart';
+import 'package:cabal/base/material.dart';
+import 'package:cabal/base/mesh.dart';
+import 'package:cabal/base/camera.dart';
+import 'package:cabal/base/components/transform_component.dart';
+import 'package:cabal/base/ecs_game.dart';
 
 ByteData float32(List<double> values) {
   return Float32List.fromList(values).buffer.asByteData();
@@ -24,181 +31,78 @@ ByteData float32Mat(vm.Matrix4 matrix) {
   return matrix.storage.buffer.asByteData();
 }
 
-class CabalGame extends Game {
-  double elapsedSeconds = 0;
-  phys.World? world;
-  gpu.ShaderLibrary? shaderLibrary;
+class BoxSpawnSystem extends oxy.System {
+  static const double threshold = 1;
+
+  BoxSpawnSystem(this.physicsWorld);
+
+  phys.World physicsWorld;
+  double time = 1;
+  late gpu.Texture boxTexture;
 
   @override
-  Future<void> preload() async {
-    /// Load a shader bundle asset.
-    shaderLibrary = gpu.ShaderLibrary.fromAsset('gen/cabal.shaderbundle')!;
-    if (shaderLibrary == null) {
-      throw Exception("FATAL: Failed to load shader library!");
-    }
-    return Future.value();
+  void init() {
+    boxTexture = gpu.gpuContext.createTexture(gpu.StorageMode.hostVisible, 5, 5,
+        enableShaderReadUsage: true)!;
+    boxTexture.overwrite(uint32(<int>[
+      0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, //
+      0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000, //
+      0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, //
+      0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000, //
+      0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, //
+    ]));
   }
 
-  late phys.RigidBody dynamicBody;
-
   @override
-  void start() {
-    world = phys.World();
+  void execute(double delta) {
+    time += delta;
+    if (time < threshold) {
+      return;
+    }
 
-    // Create a 2x2x2 box.
-    var box = phys.BoxShape(vm.Vector3(1, 1, 1));
+    final boxExtents = vm.Vector3(1, 1, 1);
 
-    // Create a static plane in the X-Z axis.
-    var plane = phys.StaticPlaneShape(vm.Vector3(0, 1, 0), 0);
+    final cubeMesh = Mesh(
+        geometry: CuboidGeometry(boxExtents),
+        material: UnlitMaterial(colorTexture: boxTexture));
 
-    // Make a dynamic body with mass 1.0 with the box shape.
-    // Place it 10 units in the air.
-    dynamicBody = phys.RigidBody(1.0, box)
+    final box = phys.BoxShape(boxExtents / 2);
+    final body = phys.RigidBody(1, box)
       ..xform.origin = vm.Vector3(0, 10, 0)
       ..xform.rotation = vm.Quaternion.euler(1, 1, 1);
 
-    // Make a static body (mass == 0.0) with the static plane shape
-    // place it at the origin.
-    var floorBody = phys.RigidBody(0.0, plane);
+    world!.createEntity()
+      ..add<TransformComponent, vm.Matrix4>()
+      ..add<MeshComponent, Mesh>(cubeMesh)
+      ..add<RigidBodyComponent, phys.RigidBody>(body);
 
-    world!.addBody(dynamicBody);
-    world!.addBody(floorBody);
+    time -= threshold;
+  }
+}
+
+class CabalGame extends ECSGame {
+  @override
+  Future<void> preload() async {
+    return Future.value();
   }
 
   @override
-  void fixedUpdate() {
-    world?.step(Game.fixedTickIntervalSeconds);
-  }
+  void startECS(oxy.World world) {
+    //--------------------------------------------------------------------------
+    /// Setup camera.
+    ///
 
-  @override
-  void update(double dt) {
-    elapsedSeconds += dt;
-  }
+    world.createEntity()
+      ..add<TransformComponent, vm.Matrix4>(vm.Matrix4.identity())
+      ..add<CameraComponent, Camera>(Camera(
+          fovRadiansY: 60 * vm.degrees2Radians,
+          position: vm.Vector3(8, 8, 8),
+          target: vm.Vector3(0, 2, 0)));
 
-  @override
-  void render(Canvas canvas, Size size) {
-    /// Allocate a new renderable texture.
-    final gpu.Texture? renderTexture = gpu.gpuContext.createTexture(
-        gpu.StorageMode.devicePrivate, size.width.toInt(), size.height.toInt(),
-        enableRenderTargetUsage: true,
-        enableShaderReadUsage: true,
-        coordinateSystem: gpu.TextureCoordinateSystem.renderToTexture);
-    if (renderTexture == null) {
-      return;
-    }
+    //--------------------------------------------------------------------------
+    /// Create spawner.
+    ///
 
-    final gpu.Texture? depthTexture = gpu.gpuContext.createTexture(
-        gpu.StorageMode.deviceTransient,
-        size.width.toInt(),
-        size.height.toInt(),
-        format: gpu.gpuContext.defaultDepthStencilFormat,
-        enableRenderTargetUsage: true,
-        coordinateSystem: gpu.TextureCoordinateSystem.renderToTexture);
-    if (depthTexture == null) {
-      return;
-    }
-
-    /// Create the command buffer. This will be used to submit all encoded
-    /// commands at the end.
-    final commandBuffer = gpu.gpuContext.createCommandBuffer();
-
-    /// Define a render target. This is just a collection of attachments that a
-    /// RenderPass will write to.
-    final renderTarget = gpu.RenderTarget.singleColor(
-      gpu.ColorAttachment(texture: renderTexture),
-      depthStencilAttachment: gpu.DepthStencilAttachment(
-          texture: depthTexture, depthClearValue: 1.0),
-    );
-
-    /// Add a render pass encoder to the command buffer so that we can start
-    /// encoding commands.
-    final encoder = commandBuffer.createRenderPass(renderTarget);
-
-    /// Create a RenderPipeline using shaders from the asset.
-    final vertex = shaderLibrary!['TextureVertex']!;
-    final fragment = shaderLibrary!['TextureFragment']!;
-    final pipeline = gpu.gpuContext.createRenderPipeline(vertex, fragment);
-
-    encoder.bindPipeline(pipeline);
-
-    encoder.setDepthWriteEnable(true);
-    encoder.setDepthCompareOperation(gpu.CompareFunction.less);
-
-    /// Append quick geometry and uniforms to a host buffer that will be
-    /// automatically uploaded to the GPU later on.
-    final transients = gpu.HostBuffer();
-    final vertices = transients.emplace(float32(<double>[
-      -1, -1, -1, /* */ 0, 0, /* */ 1, 0, 0, 1, //
-      1, -1, -1, /*  */ 1, 0, /* */ 0, 1, 0, 1, //
-      1, 1, -1, /*   */ 1, 1, /* */ 0, 0, 1, 1, //
-      -1, 1, -1, /*  */ 0, 1, /* */ 0, 0, 0, 1, //
-      -1, -1, 1, /*  */ 0, 0, /* */ 0, 1, 1, 1, //
-      1, -1, 1, /*   */ 1, 0, /* */ 1, 0, 1, 1, //
-      1, 1, 1, /*    */ 1, 1, /* */ 1, 1, 0, 1, //
-      -1, 1, 1, /*   */ 0, 1, /* */ 1, 1, 1, 1, //
-    ]));
-    final indices = transients.emplace(uint16(<int>[
-      0, 1, 3, 3, 1, 2, //
-      1, 5, 2, 2, 5, 6, //
-      5, 4, 6, 6, 4, 7, //
-      4, 0, 7, 7, 0, 3, //
-      3, 2, 7, 7, 2, 6, //
-      4, 5, 0, 0, 5, 1, //
-    ]));
-
-    var viewProjectionMatrix = Camera(
-            fovRadiansY: 60 * vm.degrees2Radians,
-            position: vm.Vector3(
-                  sin(elapsedSeconds / 2),
-                  1,
-                  cos(elapsedSeconds / 2),
-                ) *
-                8.0,
-            target: vm.Vector3(0, 2, 0))
-        .getTransform(size.width / size.height);
-    var modelMatrix = vm.Matrix4.fromFloat32List(dynamicBody.xform.storage);
-
-    // Hack to fix the physics transform. Make the translation positional.
-    modelMatrix = modelMatrix.clone()..setEntry(3, 3, 1);
-
-    final mvp =
-        transients.emplace(float32Mat(viewProjectionMatrix * modelMatrix));
-
-    /// Bind the vertex and index buffer.
-    encoder.bindVertexBuffer(vertices, 8);
-    encoder.bindIndexBuffer(indices, gpu.IndexType.int16, 36);
-
-    /// Bind the host buffer data we just created to the vertex shader's uniform
-    /// slots. Although the locations are specified in the shader and are
-    /// predictable, we can optionally fetch the uniform slots by name for
-    /// convenience.
-    final mvpSlot = pipeline.vertexShader.getUniformSlot('mvp')!;
-    encoder.bindUniform(mvpSlot, mvp);
-
-    final sampledTexture = gpu.gpuContext.createTexture(
-        gpu.StorageMode.hostVisible, 5, 5,
-        enableShaderReadUsage: true);
-    sampledTexture!.overwrite(uint32(<int>[
-      0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, //
-      0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000, //
-      0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, //
-      0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000, //
-      0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, //
-    ]));
-
-    final texSlot = pipeline.fragmentShader.getUniformSlot('tex')!;
-    encoder.bindTexture(texSlot, sampledTexture);
-
-    /// And finally, we append a draw call.
-    encoder.draw();
-
-    /// Submit all of the previously encoded passes. Passes are encoded in the
-    /// same order they were created in.
-    commandBuffer.submit();
-
-    /// Wrap the Flutter GPU texture as a ui.Image and draw it like normal!
-    final image = renderTexture.asImage();
-
-    canvas.drawImage(image, Offset.zero, Paint());
+    world.registerSystem(BoxSpawnSystem(physicsWorld));
   }
 }
