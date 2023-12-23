@@ -31,6 +31,14 @@ function build_physics {
     $SCRIPT_DIR/gen/libflutter_bullet.dylib
 }
 
+function build_jolt {
+  pushd $SCRIPT_DIR/plugins/ffi/jolt
+  cmake .
+  make -j 4
+  popd
+  dart run ffigen --config $SCRIPT_DIR/plugins/ffi/jolt.ffigen.yaml
+}
+
 function build_shaders {
   mkdir -p $SCRIPT_DIR/gen
   $IMPELLERC \
@@ -40,8 +48,9 @@ function build_shaders {
     --shader-bundle=\{\"TextureFragment\":\ \{\"type\":\ \"fragment\",\ \"file\":\ \"$SCRIPT_DIR/shaders/flutter_gpu_texture.frag\"\},\ \"TextureVertex\":\ \{\"type\":\ \"vertex\",\ \"file\":\ \"$SCRIPT_DIR/shaders/flutter_gpu_texture.vert\"\}\}
 }
 
-build_physics
-build_shaders
+# build_physics
+# build_shaders
+build_jolt
 
 set +x
 
