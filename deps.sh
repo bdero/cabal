@@ -49,7 +49,7 @@ function build_shaders {
 }
 
 # build_physics
-# build_shaders
+build_shaders
 build_jolt
 
 set +x

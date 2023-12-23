@@ -152,8 +152,8 @@ packages:
   flutter_gpu:
     dependency: "direct main"
     description:
-      path: "../engine/src/flutter/lib/gpu"
-      relative: true
+      path: "/Users/bdero/projects/flutter/engine/src/flutter/lib/gpu"
+      relative: false
     source: path
     version: "0.0.0"
   flutter_lints:
@@ -297,6 +297,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
+  oxygen:
+    dependency: "direct main"
+    description:
+      name: oxygen
+      sha256: "57c331b91d021a7800dcb8107d1414cc2247eb086f07f309503f34fff3b3d7b9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   package_config:
     dependency: transitive
     description:
