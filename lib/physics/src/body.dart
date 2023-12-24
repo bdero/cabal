@@ -39,12 +39,21 @@ class BodySettings {
       config.ref.position[0] = position!.storage[0];
       config.ref.position[1] = position!.storage[1];
       config.ref.position[2] = position!.storage[2];
+    } else {
+      config.ref.position[0] = 0.0;
+      config.ref.position[1] = 0.0;
+      config.ref.position[2] = 0.0;
     }
     if (rotation != null) {
       config.ref.rotation[0] = rotation!.storage[0];
       config.ref.rotation[1] = rotation!.storage[1];
       config.ref.rotation[2] = rotation!.storage[2];
       config.ref.rotation[3] = rotation!.storage[3];
+    } else {
+      config.ref.rotation[0] = 0.0;
+      config.ref.rotation[1] = 0.0;
+      config.ref.rotation[2] = 0.0;
+      config.ref.rotation[3] = 1.0;
     }
   }
 }

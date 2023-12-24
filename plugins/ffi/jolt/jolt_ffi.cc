@@ -1,10 +1,6 @@
 #include "jolt_ffi.h"
 
-#include <cstddef>
-#include <iostream>
-#include <memory>
 #include <mutex>
-#include <thread>
 
 // The Jolt headers don't include Jolt.h. Always include Jolt.h before including
 // any other Jolt header. You can use Jolt.h in your precompiled header to speed
