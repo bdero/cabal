@@ -1,5 +1,5 @@
 import 'package:oxygen/oxygen.dart' as oxy;
-import 'package:flutter_bullet/physics3d.dart' as phys;
+import 'package:cabal/physics/physics.dart' as phys;
 
 class RigidBodyComponent extends oxy.Component<phys.RigidBody> {
   RigidBodyComponent(this.physicsWorld);
