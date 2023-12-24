@@ -1,4 +1,6 @@
 #include "jolt_ffi.h"
+#include "dart_api.h"
+#include "dart_api_dl.h"
 
 #include <mutex>
 #include <thread>
@@ -53,16 +55,28 @@ void init_jph_once() {
   });
 }
 
+constexpr uint32 LayerFilterMoving = 1;
+constexpr uint32 LayerFilterStatic = 2;
+constexpr uint32 LayerFilterSensor = 4;
+constexpr uint32 LayerFilterAll = LayerFilterMoving | LayerFilterStatic | LayerFilterSensor;
+
 class World {
 public:
   World() {
     temp_allocator_ = std::make_unique<TempAllocatorImpl>(10 * 1024 * 1024);
     job_system_ = std::make_unique<JobSystemThreadPool>(cMaxPhysicsJobs, cMaxPhysicsBarriers, thread::hardware_concurrency() - 1);
-    // TODO(johnmccutchan): The number of layers must be configurable.
+
+    // Configure our broad phase layers.
     bp_layer_interface_ = std::make_unique<BroadPhaseLayerInterfaceMask>(2);
+    // Layer 0 holds moving and sensor objects.
+    bp_layer_interface_->ConfigureLayer(BroadPhaseLayer(0), LayerFilterMoving|LayerFilterSensor, 0);
+    // Layer 1 holds static objects.
+    bp_layer_interface_->ConfigureLayer(BroadPhaseLayer(1), LayerFilterStatic, 0);
+
     object_vs_broad_phase_layer_filter_ =
         std::make_unique<ObjectVsBroadPhaseLayerFilterMask>(
             *bp_layer_interface_);
+
     object_vs_object_layer_pair_filter_ =
         std::make_unique<ObjectLayerPairFilterMask>();
     physics_system_ = std::make_unique<PhysicsSystem>();
@@ -130,23 +144,23 @@ public:
   }
 
   ~CollisionShape() {
+    Dart_DeleteWeakPersistentHandle_DL(owner_);
   }
 
-  static void SetDartOwner(Shape *shape, Dart_Handle owner) {
-    Dart_WeakPersistentHandle weak_ref =
+  static void SetDartOwner(CollisionShape *shape, Dart_Handle owner) {
+    shape->owner_ =
         Dart_NewWeakPersistentHandle_DL(owner, nullptr, 0, NoopFinalizer);
-    shape->SetUserData(reinterpret_cast<uint64_t>(weak_ref));
   }
 
-  static Dart_Handle GetDartOwner(Shape *shape) {
-    return Dart_HandleFromWeakPersistent_DL(
-        reinterpret_cast<Dart_WeakPersistentHandle>(shape->GetUserData()));
+  static Dart_Handle GetDartOwner(CollisionShape *shape) {
+    return Dart_HandleFromWeakPersistent_DL(shape->owner_);
   }
 
   Shape *shape() { return shape_; }
 
 private:
   Ref<Shape> shape_;
+  Dart_WeakPersistentHandle owner_;
 };
 
 class WorldBody {
@@ -155,25 +169,23 @@ public:
   }
 
   ~WorldBody() {
+    if (owner_ != nullptr) {
+      Dart_DeleteWeakPersistentHandle_DL(owner_);
+    }
   }
 
   static void SetDartOwner(WorldBody *body, Dart_Handle owner) {
-    Dart_WeakPersistentHandle weak_ref =
+    body->owner_ =
         Dart_NewWeakPersistentHandle_DL(owner, nullptr, 0, NoopFinalizer);
-    body->body()->SetUserData(reinterpret_cast<uint64_t>(weak_ref));
   }
 
   static Dart_Handle GetDartOwner(WorldBody *body) {
-    return Dart_HandleFromWeakPersistent_DL(
-        reinterpret_cast<Dart_WeakPersistentHandle>(
-            body->body()->GetUserData()));
+    return Dart_HandleFromWeakPersistent_DL(body->owner_);
   }
 
   World *world() { return world_; }
 
   BodyInterface &interface() { return world_->body_interface(); }
-
-  Body *body() { return body_; }
 
   const BodyID& id() { return body_->GetID(); }
 
@@ -190,24 +202,27 @@ public:
   }
 
   void GetPosition(float *v4) {
-    *reinterpret_cast<Vec3 *>(v4) = body_->GetPosition();
+    *reinterpret_cast<Vec3 *>(v4) = interface().GetPosition(id());
   }
 
   void GetRotation(float *q4) {
-    *reinterpret_cast<Quat *>(q4) = body_->GetRotation();
+    *reinterpret_cast<Quat *>(q4) = interface().GetRotation(id());
   }
 
   void GetWorldMatrix(float* m16) {
-    *reinterpret_cast<Mat44*>(m16) = body_->GetWorldTransform();
+    *reinterpret_cast<Mat44*>(m16) = interface().GetWorldTransform(id());
   }
 
   void GetCOMMatrix(float* m16) {
-    *reinterpret_cast<Mat44*>(m16) = body_->GetCenterOfMassTransform();
+    *reinterpret_cast<Mat44*>(m16) = interface().GetCenterOfMassTransform(id());
   }
 
 private:
+  Body *body() { return body_; }
+
   World *world_;
   Body *body_;
+  Dart_WeakPersistentHandle owner_ = nullptr;
 };
 
 FFI_PLUGIN_EXPORT World *create_world() {
@@ -255,11 +270,11 @@ FFI_PLUGIN_EXPORT CollisionShape *create_sphere_shape(float radius) {
 
 FFI_PLUGIN_EXPORT void shape_set_dart_owner(CollisionShape *shape,
                                             Dart_Handle owner) {
-  CollisionShape::SetDartOwner(shape->shape(), owner);
+  CollisionShape::SetDartOwner(shape, owner);
 }
 
 FFI_PLUGIN_EXPORT Dart_Handle shape_get_dart_owner(CollisionShape *shape) {
-  return CollisionShape::GetDartOwner(shape->shape());
+  return CollisionShape::GetDartOwner(shape);
 }
 
 FFI_PLUGIN_EXPORT void destroy_shape(CollisionShape *shape) { delete shape; }
@@ -282,6 +297,11 @@ void toJolt(BodyConfig *config, BodyCreationSettings *settings) {
   settings->mPosition.SetComponent(2, config->position[2]);
   settings->mRotation.Set(config->rotation[0], config->rotation[1],
                           config->rotation[2], config->rotation[3]);
+  if (settings->mMotionType == EMotionType::Static) {
+    settings->mObjectLayer = ObjectLayerPairFilterMask::sGetObjectLayer(LayerFilterStatic, LayerFilterMoving);
+  } else {
+    settings->mObjectLayer = ObjectLayerPairFilterMask::sGetObjectLayer(LayerFilterMoving, LayerFilterAll);
+  }
 }
 
 FFI_PLUGIN_EXPORT WorldBody *world_create_body(World *world,
@@ -318,6 +338,18 @@ FFI_PLUGIN_EXPORT void body_get_world_matrix(WorldBody* body, float* m16) {
 
 FFI_PLUGIN_EXPORT void body_get_com_matrix(WorldBody* body, float* m16) {
   body->GetCOMMatrix(m16);
+}
+
+FFI_PLUGIN_EXPORT void body_set_active(WorldBody* body, bool activate) {
+  if (activate) {
+    body->interface().ActivateBody(body->id());
+  } else {
+    body->interface().DeactivateBody(body->id());
+  }
+}
+
+FFI_PLUGIN_EXPORT bool body_get_active(WorldBody* body) {
+  return body->interface().IsActive(body->id());
 }
 
 FFI_PLUGIN_EXPORT void destroy_body(WorldBody *body) { delete body; }

@@ -83,6 +83,10 @@ FFI_PLUGIN_EXPORT void body_get_world_matrix(WorldBody* body, float* m16);
 
 FFI_PLUGIN_EXPORT void body_get_com_matrix(WorldBody* body, float* m16);
 
+FFI_PLUGIN_EXPORT void body_set_active(WorldBody* body, bool activate);
+
+FFI_PLUGIN_EXPORT bool body_get_active(WorldBody* body);
+
 FFI_PLUGIN_EXPORT void destroy_body(WorldBody* body);
 
 #ifdef __cplusplus

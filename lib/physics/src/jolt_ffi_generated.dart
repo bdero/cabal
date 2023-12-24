@@ -702,6 +702,37 @@ class Jolt {
       void Function(
           ffi.Pointer<WorldBody>, ffi.Pointer<ffi.Float>)>(isLeaf: true);
 
+  void body_set_active(
+    ffi.Pointer<WorldBody> body,
+    bool activate,
+  ) {
+    return _body_set_active(
+      body,
+      activate,
+    );
+  }
+
+  late final _body_set_activePtr = _lookup<
+          ffi
+          .NativeFunction<ffi.Void Function(ffi.Pointer<WorldBody>, ffi.Bool)>>(
+      'body_set_active');
+  late final _body_set_active = _body_set_activePtr
+      .asFunction<void Function(ffi.Pointer<WorldBody>, bool)>(isLeaf: true);
+
+  bool body_get_active(
+    ffi.Pointer<WorldBody> body,
+  ) {
+    return _body_get_active(
+      body,
+    );
+  }
+
+  late final _body_get_activePtr =
+      _lookup<ffi.NativeFunction<ffi.Bool Function(ffi.Pointer<WorldBody>)>>(
+          'body_get_active');
+  late final _body_get_active = _body_get_activePtr
+      .asFunction<bool Function(ffi.Pointer<WorldBody>)>(isLeaf: true);
+
   void destroy_body(
     ffi.Pointer<WorldBody> body,
   ) {
@@ -879,6 +910,12 @@ class _SymbolAddresses {
               ffi.Void Function(
                   ffi.Pointer<WorldBody>, ffi.Pointer<ffi.Float>)>>
       get body_get_com_matrix => _library._body_get_com_matrixPtr;
+  ffi.Pointer<
+          ffi
+          .NativeFunction<ffi.Void Function(ffi.Pointer<WorldBody>, ffi.Bool)>>
+      get body_set_active => _library._body_set_activePtr;
+  ffi.Pointer<ffi.NativeFunction<ffi.Bool Function(ffi.Pointer<WorldBody>)>>
+      get body_get_active => _library._body_get_activePtr;
   ffi.Pointer<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<WorldBody>)>>
       get destroy_body => _library._destroy_bodyPtr;
 }

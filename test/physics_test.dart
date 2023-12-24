@@ -34,8 +34,8 @@ main() {
   });
 
   test('matrix', () {
-    var crate = BoxShape(Vector3(0.5, 0.5, 0.5));
-    var box = world.createRigidBody(BodySettings(crate));
+    var unitCube = BoxShape(Vector3(0.5, 0.5, 0.5));
+    var box = world.createRigidBody(BodySettings(unitCube));
     expect(box.worldTransform, equals(Matrix4.identity()));
   });
 
@@ -48,5 +48,24 @@ main() {
     expect(ball.position.y, equals(10));
     world.step(dt);
     expect(ball.position.y, lessThan(10));
+  });
+
+  test('body settles', () {
+    var unitCube = BoxShape(Vector3(0.5, 0.5, 0.5));
+    var box = world.createRigidBody(BodySettings(unitCube)
+      ..position = Vector3(0, 2, 0)
+      ..motionType = MotionType.dynamic);
+    world.addBody(box);
+    final plane = BoxShape(Vector3(100, 1, 100));
+    final ground = world.createRigidBody(BodySettings(plane)
+      ..position = Vector3(0.0, -1.0, 0)
+      ..motionType = MotionType.static);
+    world.addBody(ground);
+
+    // Drop a box onto a larger (static) box. Eventually the box should
+    // be automatically deactivated.
+    while (box.active) {
+      world.step(dt);
+    }
   });
 }

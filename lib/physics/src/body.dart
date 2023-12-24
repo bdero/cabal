@@ -159,6 +159,17 @@ class Body implements ffi.Finalizable {
     // Call to set.
   }
 
+  // Returns true if the body is active in the simulation.
+  bool get active {
+    return jolt.bindings.body_get_active(_nativeBody);
+  }
+
+  // Setting this to true will activate the body in the simulation.
+  // Setting this to false will deactivate the body in the simulation.
+  set active(bool activate) {
+    jolt.bindings.body_set_active(_nativeBody, activate);
+  }
+
   Body._(this._world, this._nativeBody, this._shape) {
     _finalizer.attach(this, _nativeBody.cast(), detach: this);
   }

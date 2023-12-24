@@ -7,6 +7,19 @@ enum Activation {
   dontActivate,
 }
 
+// Layers determine which other objects can collide with an object.
+enum Layer {
+  // Moving objects.
+  // Collides with everything.
+  moving,
+  // Non moving objects.
+  // Collides with moving.
+  nonMoving,
+  // Sensor objects.
+  // Collides with everything.
+  sensor,
+}
+
 /// Physics world that can be populated with rigid bodies.
 class World implements ffi.Finalizable {
   static final _finalizer =
