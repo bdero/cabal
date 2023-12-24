@@ -7,8 +7,8 @@ enum Activation {
   dontActivate,
 }
 
-// Layers determine which other objects can collide with an object.
-enum Layer {
+// PhysicsLayers determine which other objects can collide with an object.
+enum PhysicsLayer {
   // Moving objects.
   // Collides with everything.
   moving,
