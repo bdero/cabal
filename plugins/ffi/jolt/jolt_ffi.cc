@@ -1,6 +1,7 @@
 #include "jolt_ffi.h"
 
 #include <mutex>
+#include <thread>
 
 // The Jolt headers don't include Jolt.h. Always include Jolt.h before including
 // any other Jolt header. You can use Jolt.h in your precompiled header to speed
@@ -10,6 +11,7 @@
 // Jolt includes
 #include <Jolt/Core/Factory.h>
 #include <Jolt/Core/JobSystemSingleThreaded.h>
+#include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
@@ -48,8 +50,6 @@ void init_jph_once() {
 
     // Register all Jolt physics types
     RegisterTypes();
-
-    fprintf(stderr, "INIT_ONCE\n");
   });
 }
 
@@ -57,7 +57,7 @@ class World {
 public:
   World() {
     temp_allocator_ = std::make_unique<TempAllocatorImpl>(10 * 1024 * 1024);
-    job_system_ = std::make_unique<JobSystemSingleThreaded>(cMaxPhysicsJobs);
+    job_system_ = std::make_unique<JobSystemThreadPool>(cMaxPhysicsJobs, cMaxPhysicsBarriers, thread::hardware_concurrency() - 1);
     // TODO(johnmccutchan): The number of layers must be configurable.
     bp_layer_interface_ = std::make_unique<BroadPhaseLayerInterfaceMask>(2);
     object_vs_broad_phase_layer_filter_ =
@@ -70,10 +70,9 @@ public:
                           cMaxContactConstraints, *bp_layer_interface_,
                           *object_vs_broad_phase_layer_filter_,
                           *object_vs_object_layer_pair_filter_);
-    fprintf(stderr, "WORLD\n");
   }
 
-  ~World() { fprintf(stderr, "~WORLD\n"); }
+  ~World() { }
 
   TempAllocator *temp_allocator() { return temp_allocator_.get(); }
 
@@ -102,7 +101,7 @@ private:
   // system. If you try to add more you'll get an error. Note: This value is low
   // because this is a simple test. For a real project use something in the
   // order of 65536.
-  static const int cMaxBodies = 1024;
+  static const int cMaxBodies = 65536;
 
   // This determines how many mutexes to allocate to protect rigid bodies from
   // concurrent access. Set it to 0 for the default settings.
@@ -115,26 +114,22 @@ private:
   // start to do narrow phase work. This is slightly less efficient. Note: This
   // value is low because this is a simple test. For a real project use
   // something in the order of 65536.
-  static const uint cMaxBodyPairs = 1024;
+  static const uint cMaxBodyPairs = 65536;
 
   // This is the maximum size of the contact constraint buffer. If more contacts
   // (collisions between bodies) are detected than this number then these
   // contacts will be ignored and bodies will start interpenetrating / fall
   // through the world. Note: This value is low because this is a simple test.
   // For a real project use something in the order of 10240.
-  static const uint cMaxContactConstraints = 1024;
+  static const uint cMaxContactConstraints = 10240;
 };
 
 class CollisionShape {
 public:
   explicit CollisionShape(Ref<Shape> shape) : shape_(shape) {
-    fprintf(stderr, "CollisionShape: %d.%d\n", (int)shape_->GetType(),
-            (int)shape_->GetSubType());
   }
 
   ~CollisionShape() {
-    fprintf(stderr, "~CollisionShape %d.%d\n", (int)shape_->GetType(),
-            (int)shape_->GetSubType());
   }
 
   static void SetDartOwner(Shape *shape, Dart_Handle owner) {
@@ -157,13 +152,9 @@ private:
 class WorldBody {
 public:
   WorldBody(World *world, Body *body) : world_(world), body_(body) {
-    fprintf(stderr, "WorldBody %d.%d\n", body_->GetID().GetIndex(),
-            body_->GetID().GetSequenceNumber());
   }
 
   ~WorldBody() {
-    fprintf(stderr, "~WorldBody %d.%d\n", body_->GetID().GetIndex(),
-            body_->GetID().GetSequenceNumber());
   }
 
   static void SetDartOwner(WorldBody *body, Dart_Handle owner) {
@@ -196,7 +187,6 @@ public:
   void SetRotation(float *q4) {
     interface().SetRotation(id(), *reinterpret_cast<Quat *>(q4),
                             EActivation::DontActivate);
-    fprintf(stderr, "Setting rotation\n");
   }
 
   void GetPosition(float *v4) {
@@ -222,35 +212,25 @@ private:
 
 FFI_PLUGIN_EXPORT World *create_world() {
   init_jph_once();
-  fprintf(stderr, "create\n");
   return new World();
 }
 
 FFI_PLUGIN_EXPORT int world_step(World *world, float dt) {
-  fprintf(stderr, "step\n");
   // TODO(johnmccutchan): Collision steps needs to be configurable.
   EPhysicsUpdateError error = world->physics_system().Update(
       dt, 1, world->temp_allocator(), world->job_system());
-  fprintf(stderr, "step result=%d\n", (int)error);
   return (int)error;
 }
 
 FFI_PLUGIN_EXPORT void destroy_world(World *world) {
-  fprintf(stderr, "destroy\n");
   delete world;
 }
 
 FFI_PLUGIN_EXPORT void world_add_body(World* world, WorldBody* body, int activation) {
-  fprintf(stderr, "add_body id=%d activation=%d\n", body->id().GetIndexAndSequenceNumber(), activation);
   world->body_interface().AddBody(body->id(),  static_cast<EActivation>(activation));
-  // if (static_cast<EActivation>(activation)  == EActivation::Activate) {
-  //   world->body_interface().ActivateBody(body->id());
-  // }
-  fprintf(stderr, "id=%d activate=%d\n", body->id().GetIndexAndSequenceNumber(), world->body_interface().IsActive(body->id()) ? 1 : 0);
 }
 
 FFI_PLUGIN_EXPORT void world_remove_body(World* world, WorldBody* body) {
-  fprintf(stderr, "remove_body id=%d\n", body->id().GetIndexAndSequenceNumber());
   world->body_interface().RemoveBody(body->id());
 }
 
@@ -275,12 +255,10 @@ FFI_PLUGIN_EXPORT CollisionShape *create_sphere_shape(float radius) {
 
 FFI_PLUGIN_EXPORT void shape_set_dart_owner(CollisionShape *shape,
                                             Dart_Handle owner) {
-  fprintf(stderr, "SetDartOwner\n");
   CollisionShape::SetDartOwner(shape->shape(), owner);
 }
 
 FFI_PLUGIN_EXPORT Dart_Handle shape_get_dart_owner(CollisionShape *shape) {
-  fprintf(stderr, "GetDartOwner\n");
   return CollisionShape::GetDartOwner(shape->shape());
 }
 

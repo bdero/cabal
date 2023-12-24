@@ -29,6 +29,14 @@ set(FLOATING_POINT_EXCEPTIONS_ENABLED OFF)
 # Number of bits to use in ObjectLayer. Can be 16 or 32.
 set(OBJECT_LAYER_BITS 16)
 
+# Requires C++ 17
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+include_directories(SYSTEM "../../../deps/JoltPhysics/")
+
 # Include Jolt
 FetchContent_Declare(
         JoltPhysics
@@ -36,12 +44,6 @@ FetchContent_Declare(
 		    SOURCE_SUBDIR "Build"
 )
 FetchContent_MakeAvailable(JoltPhysics)
-
-# Requires C++ 17
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (MSVC)
 	# 64 bit architecture

@@ -33,6 +33,12 @@ main() {
     });
   });
 
+  test('matrix', () {
+    var crate = BoxShape(Vector3(0.5, 0.5, 0.5));
+    var box = world.createRigidBody(BodySettings(crate));
+    expect(box.worldTransform, equals(Matrix4.identity()));
+  });
+
   test('gravity', () {
     var sphere = SphereShape(1);
     var ball = world.createRigidBody(BodySettings(sphere)
@@ -43,13 +49,4 @@ main() {
     world.step(dt);
     expect(ball.position.y, lessThan(10));
   });
-
-  test('matrix', () {
-    var crate = BoxShape(Vector3(0.5, 0.5, 0.5));
-    var box = world.createRigidBody(BodySettings(crate));
-    print(box.worldTransform);
-    print(box.centerOfMassTransform);
-  });
-
-  world.step(dt);
 }
