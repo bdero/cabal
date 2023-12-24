@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:flutter_bullet/physics3d.dart' as phys;
+import 'package:cabal/physics/physics.dart' as phys;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:oxygen/oxygen.dart' as oxy;
 import 'package:vector_math/vector_math.dart' as vm;
@@ -15,24 +15,12 @@ import 'package:cabal/base/camera.dart';
 import 'package:cabal/base/components/transform_component.dart';
 import 'package:cabal/base/ecs_game.dart';
 
-ByteData float32(List<double> values) {
-  return Float32List.fromList(values).buffer.asByteData();
-}
-
-ByteData uint16(List<int> values) {
-  return Uint16List.fromList(values).buffer.asByteData();
-}
-
 ByteData uint32(List<int> values) {
   return Uint32List.fromList(values).buffer.asByteData();
 }
 
-ByteData float32Mat(vm.Matrix4 matrix) {
-  return matrix.storage.buffer.asByteData();
-}
-
 class BoxSpawnSystem extends oxy.System {
-  static const double threshold = 1;
+  static const double threshold = 0.1;
 
   BoxSpawnSystem(this.physicsWorld);
 
@@ -67,9 +55,10 @@ class BoxSpawnSystem extends oxy.System {
         material: UnlitMaterial(colorTexture: boxTexture));
 
     final box = phys.BoxShape(boxExtents / 2);
-    final body = phys.RigidBody(1, box)
-      ..xform.origin = vm.Vector3(0, 10, 0)
-      ..xform.rotation = vm.Quaternion.euler(1, 1, 1);
+    final body = physicsWorld.createRigidBody(
+        phys.BodySettings(box)..motionType = phys.MotionType.dynamic)
+      ..position = vm.Vector3(0, 10, 0)
+      ..rotation = vm.Quaternion.euler(1, 1, 1);
 
     world!.createEntity()
       ..add<TransformComponent, vm.Matrix4>()
@@ -100,8 +89,13 @@ class CabalGame extends ECSGame {
           target: vm.Vector3(0, 2, 0)));
 
     //--------------------------------------------------------------------------
-    /// Create spawner.
+    /// Create static floor and box spawner.
     ///
+
+    final floorPlane = phys.BoxShape(vm.Vector3(100, 1, 100));
+    final floor = physicsWorld.createRigidBody(
+        phys.BodySettings(floorPlane)..motionType = phys.MotionType.static);
+    world.createEntity().add<RigidBodyComponent, phys.RigidBody>(floor);
 
     world.registerSystem(BoxSpawnSystem(physicsWorld));
   }

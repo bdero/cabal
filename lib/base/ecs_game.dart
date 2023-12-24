@@ -1,8 +1,7 @@
 import 'dart:ui';
 
-import 'package:flutter_bullet/physics3d.dart' as phys;
+import 'package:cabal/physics/physics.dart' as phys;
 import 'package:oxygen/oxygen.dart' as oxy;
-import 'package:vector_math/vector_math.dart' as vm;
 
 import 'package:cabal/base/components/camera_component.dart';
 import 'package:cabal/base/components/mesh_component.dart';
@@ -30,17 +29,6 @@ abstract class ECSGame extends Game {
 
   @override
   void start() {
-    //----------HACK------------
-    // Create a static plane in the X-Z axis.
-    var plane = phys.StaticPlaneShape(vm.Vector3(0, 1, 0), 0);
-
-    // Make a static collidable that represents the floor.
-    var floor = phys.Collidable();
-    floor.shape = plane;
-
-    physicsWorld.addCollidable(floor);
-    //----------END HACK------------
-
     enableFixedUpdate = false;
 
     _world.registerComponent(() => TransformComponent());
