@@ -1,6 +1,7 @@
 import 'dart:ffi' as ffi;
 import 'dart:typed_data';
 import 'dart:collection';
+import 'package:cabal/physics/src/jolt_ffi_generated.dart';
 import 'package:ffi/ffi.dart';
 import 'package:vector_math/vector_math.dart';
 

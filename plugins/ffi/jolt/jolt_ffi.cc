@@ -23,6 +23,8 @@
 #include <Jolt/Physics/Collision/ObjectLayerPairFilterMask.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Collision/Shape/TaperedCapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
 #include <Jolt/Physics/EActivation.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
@@ -253,19 +255,66 @@ FFI_PLUGIN_EXPORT BodyConfig *world_get_body_config(World *world) {
   return world->body_config();
 }
 
-FFI_PLUGIN_EXPORT CollisionShape *create_box_shape(float hx, float hy,
-                                                   float hz) {
-  BoxShapeSettings box_shape_settings(Vec3(hx, hy, hz));
-  auto result = box_shape_settings.Create();
-  // TODO(johnmccutchan): Throw an error if result.HasError().
-  return new CollisionShape(result.Get());
+FFI_PLUGIN_EXPORT ConvexShapeConfig* get_convex_shape_config() {
+  static ConvexShapeConfig config;
+  return &config;
 }
 
-FFI_PLUGIN_EXPORT CollisionShape *create_sphere_shape(float radius) {
-  SphereShapeSettings sphere_shape_settings(radius);
-  auto result = sphere_shape_settings.Create();
-  // TODO(johnmccutchan): Throw an error if result.HasError().
-  return new CollisionShape(result.Get());
+void assert_shape_result(const char* kind, const JPH::ShapeSettings::ShapeResult& result) {
+  // TODO(johnmccutchan): Find out how to throw this as an exception into Dart.
+  if (result.HasError()) {
+    fprintf(stderr, "Shape %s creation failed: %s\n", kind, result.GetError().c_str());
+  }
+  assert(!result.HasError());
+}
+
+FFI_PLUGIN_EXPORT CollisionShape* create_convex_shape(ConvexShapeConfig* config, float* points, int num_points) {
+  switch (config->type) {
+    case kBox: {
+      BoxShapeSettings settings(Vec3(config->payload[0], config->payload[1], config->payload[2]));
+      settings.SetDensity(config->density);
+      auto result = settings.Create();
+      assert_shape_result("box", result);
+      return new CollisionShape(result.Get());
+      break;
+    }
+    case kSphere: {
+      SphereShapeSettings settings(config->payload[0]);
+      settings.SetDensity(config->density);
+      auto result = settings.Create();
+      // TODO(johnmccutchan): Throw an error if result.HasError().
+      assert_shape_result("sphere", result);
+      return new CollisionShape(result.Get());
+      break;
+    }
+    case kCapsule: {
+      TaperedCapsuleShapeSettings settings(config->payload[0], config->payload[1], config->payload[2]);
+      settings.SetDensity(config->density);
+      auto result = settings.Create();
+      assert_shape_result("capsule", result);
+      return new CollisionShape(result.Get());
+      break;
+    }
+    case kConvexHull: {
+      Array<Vec3> copiedPoints;
+      copiedPoints.reserve(num_points);
+      for (int i = 0; i < num_points; i++) {
+        copiedPoints.push_back(Vec3(points[i * 3 + 0], points[i * 3 + 1], points[i * 3 + 2]));
+      }
+      ConvexHullShapeSettings settings(copiedPoints);
+      settings.SetDensity(config->density);
+      auto result = settings.Create();
+      assert_shape_result("convex hull", result);
+      return new CollisionShape(result.Get());
+      break;
+    }
+    case kUnknown:
+    default: {
+      fprintf(stderr, "Unknown ConvexShapeConfigType: %d\n", config->type);
+      assert(false);
+      return nullptr;
+    }
+  }
 }
 
 FFI_PLUGIN_EXPORT void shape_set_dart_owner(CollisionShape *shape,

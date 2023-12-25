@@ -2,7 +2,13 @@ import 'dart:io';
 import 'dart:ffi' as ffi;
 import 'jolt_ffi_generated.dart';
 export 'jolt_ffi_generated.dart'
-    show World, CollisionShape, WorldBody, BodyConfig;
+    show
+        World,
+        CollisionShape,
+        WorldBody,
+        BodyConfig,
+        ConvexShapeConfig,
+        ConvexShapeConfigType;
 
 final ffi.DynamicLibrary dylib = () {
   const String _libPath = 'plugins/ffi/jolt';

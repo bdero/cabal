@@ -514,39 +514,36 @@ class Jolt {
   late final _destroy_world =
       _destroy_worldPtr.asFunction<void Function(ffi.Pointer<World>)>();
 
-  /// Shapes.
-  ffi.Pointer<CollisionShape> create_box_shape(
-    double hx,
-    double hy,
-    double hz,
+  /// NOTE: THere is only one instance of a ConvexShapeConfig available right now.
+  ffi.Pointer<ConvexShapeConfig> get_convex_shape_config() {
+    return _get_convex_shape_config();
+  }
+
+  late final _get_convex_shape_configPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ConvexShapeConfig> Function()>>(
+          'get_convex_shape_config');
+  late final _get_convex_shape_config = _get_convex_shape_configPtr
+      .asFunction<ffi.Pointer<ConvexShapeConfig> Function()>();
+
+  ffi.Pointer<CollisionShape> create_convex_shape(
+    ffi.Pointer<ConvexShapeConfig> config,
+    ffi.Pointer<ffi.Float> points,
+    int num_points,
   ) {
-    return _create_box_shape(
-      hx,
-      hy,
-      hz,
+    return _create_convex_shape(
+      config,
+      points,
+      num_points,
     );
   }
 
-  late final _create_box_shapePtr = _lookup<
+  late final _create_convex_shapePtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<CollisionShape> Function(
-              ffi.Float, ffi.Float, ffi.Float)>>('create_box_shape');
-  late final _create_box_shape = _create_box_shapePtr.asFunction<
-      ffi.Pointer<CollisionShape> Function(double, double, double)>();
-
-  ffi.Pointer<CollisionShape> create_sphere_shape(
-    double radius,
-  ) {
-    return _create_sphere_shape(
-      radius,
-    );
-  }
-
-  late final _create_sphere_shapePtr = _lookup<
-          ffi.NativeFunction<ffi.Pointer<CollisionShape> Function(ffi.Float)>>(
-      'create_sphere_shape');
-  late final _create_sphere_shape = _create_sphere_shapePtr
-      .asFunction<ffi.Pointer<CollisionShape> Function(double)>();
+          ffi.Pointer<CollisionShape> Function(ffi.Pointer<ConvexShapeConfig>,
+              ffi.Pointer<ffi.Float>, ffi.Int)>>('create_convex_shape');
+  late final _create_convex_shape = _create_convex_shapePtr.asFunction<
+      ffi.Pointer<CollisionShape> Function(ffi.Pointer<ConvexShapeConfig>,
+          ffi.Pointer<ffi.Float>, int)>(isLeaf: true);
 
   void shape_set_dart_owner(
     ffi.Pointer<CollisionShape> shape,
@@ -862,14 +859,15 @@ class _SymbolAddresses {
       get world_step => _library._world_stepPtr;
   ffi.Pointer<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<World>)>>
       get destroy_world => _library._destroy_worldPtr;
+  ffi.Pointer<ffi.NativeFunction<ffi.Pointer<ConvexShapeConfig> Function()>>
+      get get_convex_shape_config => _library._get_convex_shape_configPtr;
   ffi.Pointer<
       ffi.NativeFunction<
           ffi.Pointer<CollisionShape> Function(
-              ffi.Float, ffi.Float, ffi.Float)>> get create_box_shape =>
-      _library._create_box_shapePtr;
-  ffi.Pointer<
-          ffi.NativeFunction<ffi.Pointer<CollisionShape> Function(ffi.Float)>>
-      get create_sphere_shape => _library._create_sphere_shapePtr;
+              ffi.Pointer<ConvexShapeConfig>,
+              ffi.Pointer<ffi.Float>,
+              ffi.Int)>> get create_convex_shape =>
+      _library._create_convex_shapePtr;
   ffi.Pointer<
           ffi.NativeFunction<
               ffi.Void Function(ffi.Pointer<CollisionShape>, ffi.Handle)>>
@@ -1385,4 +1383,31 @@ final class BodyConfig extends ffi.Struct {
 
   @ffi.Int()
   external int motion_quality;
+}
+
+abstract class ConvexShapeConfigType {
+  static const int kUnknown = 0;
+  static const int kBox = 1;
+  static const int kSphere = 2;
+  static const int kCapsule = 3;
+  static const int kConvexHull = 4;
+}
+
+final class ConvexShapeConfig extends ffi.Struct {
+  @ffi.Int32()
+  external int type;
+
+  @ffi.Float()
+  external double density;
+
+  /// kBox:
+  /// payload is the half extents.
+  /// kSphere:
+  /// payload[0] is the radius.
+  /// kCapsule:
+  /// payload[0] is half height, payload[1] is top radius, payload[2] is bottom radius.
+  /// kConvexHull:
+  /// payload is not used.
+  @ffi.Array.multi([3])
+  external ffi.Array<ffi.Float> payload;
 }

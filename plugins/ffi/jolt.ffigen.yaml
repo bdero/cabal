@@ -18,6 +18,7 @@ functions:
     include:
       - 'body_set_.*'
       - 'body_get_.*'
+      - 'create_convex_shape'
 preamble: |
   // ignore_for_file: always_specify_types
   // ignore_for_file: camel_case_types

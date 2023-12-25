@@ -1,5 +1,6 @@
 import 'package:cabal/physics/physics.dart';
 import 'package:vector_math/vector_math.dart';
+import 'dart:typed_data';
 import 'package:test/test.dart';
 import 'dart:math';
 
@@ -12,7 +13,7 @@ main() {
 
   group('Body', () {
     test('position', () {
-      final plane = BoxShape(Vector3(100, 1, 100));
+      final plane = BoxShape(BoxShapeSettings(Vector3(100, 1, 100)));
       final ground = world.createRigidBody(
           BodySettings(plane)..position = Vector3(1.0, 0.0, 0));
       expect(ground.position, equals(Vector3(1.0, 0.0, 0)));
@@ -22,7 +23,7 @@ main() {
     });
 
     test('rotation', () {
-      final plane = BoxShape(Vector3(100, 1, 100));
+      final plane = BoxShape(BoxShapeSettings(Vector3(100, 1, 100)));
       final ground = world.createRigidBody(BodySettings(plane)
         ..rotation = Quaternion.axisAngle(Vector3(0, 1, 0), pi / 2.0));
       expect(ground.rotation.storage,
@@ -34,13 +35,13 @@ main() {
   });
 
   test('matrix', () {
-    var unitCube = BoxShape(Vector3(0.5, 0.5, 0.5));
+    var unitCube = BoxShape(BoxShapeSettings(Vector3(0.5, 0.5, 0.5)));
     var box = world.createRigidBody(BodySettings(unitCube));
     expect(box.worldTransform, equals(Matrix4.identity()));
   });
 
   test('gravity', () {
-    var sphere = SphereShape(1);
+    var sphere = SphereShape(SphereShapeSettings(1));
     var ball = world.createRigidBody(BodySettings(sphere)
       ..position = Vector3(0, 10, 0)
       ..motionType = MotionType.dynamic);
@@ -51,12 +52,12 @@ main() {
   });
 
   test('body settles', () {
-    var unitCube = BoxShape(Vector3(0.5, 0.5, 0.5));
+    var unitCube = BoxShape(BoxShapeSettings(Vector3(0.5, 0.5, 0.5)));
     var box = world.createRigidBody(BodySettings(unitCube)
       ..position = Vector3(0, 2, 0)
       ..motionType = MotionType.dynamic);
     world.addBody(box);
-    final plane = BoxShape(Vector3(100, 1, 100));
+    final plane = BoxShape(BoxShapeSettings(Vector3(100, 1, 100)));
     final ground = world.createRigidBody(BodySettings(plane)
       ..position = Vector3(0.0, -1.0, 0)
       ..motionType = MotionType.static);
@@ -70,7 +71,7 @@ main() {
   });
 
   test('boxes stack', () {
-    var unitCube = BoxShape(Vector3(2.0, 2.0, 2.0));
+    var unitCube = BoxShape(BoxShapeSettings(Vector3(2.0, 2.0, 2.0)));
     var box0 = world.createRigidBody(BodySettings(unitCube)
       ..position = Vector3(0, 6.0, 0)
       ..motionType = MotionType.dynamic);
@@ -79,7 +80,7 @@ main() {
       ..motionType = MotionType.dynamic);
     world.addBody(box0);
     world.addBody(box1);
-    final plane = BoxShape(Vector3(100, 1, 100));
+    final plane = BoxShape(BoxShapeSettings(Vector3(100, 1, 100)));
     final ground = world.createRigidBody(BodySettings(plane)
       ..position = Vector3(0.0, -1.0, 0)
       ..motionType = MotionType.static);
@@ -91,5 +92,44 @@ main() {
     }
     print(box0.position);
     print(box1.position);
+  });
+
+  test('convex hull shape', () {
+    var settings = ConvexHullShapeSettings(Float32List.fromList([
+      -2.0,
+      0.0,
+      0.0,
+      0.0,
+      -2.0,
+      0.0,
+      0.0,
+      0.0,
+      -2.0,
+      2.0,
+      0.0,
+      0.0,
+      0.0,
+      2.0,
+      0.0,
+      0.0,
+      0.0,
+      2.0
+    ]));
+    var unitCube = ConvexHullShape(settings);
+    var box = world.createRigidBody(BodySettings(unitCube)
+      ..position = Vector3(0, 2, 0)
+      ..motionType = MotionType.dynamic);
+    world.addBody(box);
+    final plane = BoxShape(BoxShapeSettings(Vector3(100, 1, 100)));
+    final ground = world.createRigidBody(BodySettings(plane)
+      ..position = Vector3(0.0, -1.0, 0)
+      ..motionType = MotionType.static);
+    world.addBody(ground);
+
+    // Drop a box onto a larger (static) box. Eventually the box should
+    // be automatically deactivated.
+    while (box.active) {
+      world.step(dt);
+    }
   });
 }

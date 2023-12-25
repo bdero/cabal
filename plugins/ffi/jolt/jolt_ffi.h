@@ -43,6 +43,28 @@ struct BodyConfig {
   int motion_quality;
 };
 
+enum ConvexShapeConfigType {
+  kUnknown,
+  kBox,
+  kSphere,
+  kCapsule,
+  kConvexHull,
+};
+
+struct ConvexShapeConfig {
+  ConvexShapeConfigType type = kUnknown;
+  float density = 0.0;
+  // kBox:
+  // payload is the half extents.
+  // kSphere:
+  // payload[0] is the radius.
+  // kCapsule:
+  // payload[0] is half height, payload[1] is top radius, payload[2] is bottom radius.
+  // kConvexHull:
+  // payload is not used.
+  float payload[3];
+};
+
 // World.
 FFI_PLUGIN_EXPORT World* create_world();
 
@@ -59,10 +81,10 @@ FFI_PLUGIN_EXPORT int world_step(World* world, float dt);
 
 FFI_PLUGIN_EXPORT void destroy_world(World* world);
 
-// Shapes.
-FFI_PLUGIN_EXPORT CollisionShape* create_box_shape(float hx, float hy, float hz);
+// NOTE: THere is only one instance of a ConvexShapeConfig available right now.
+FFI_PLUGIN_EXPORT ConvexShapeConfig* get_convex_shape_config();
 
-FFI_PLUGIN_EXPORT CollisionShape* create_sphere_shape(float radius);
+FFI_PLUGIN_EXPORT CollisionShape* create_convex_shape(ConvexShapeConfig* config, float* points, int num_points);
 
 FFI_PLUGIN_EXPORT void shape_set_dart_owner(CollisionShape* shape, Dart_Handle owner);
 
