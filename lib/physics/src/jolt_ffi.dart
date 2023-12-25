@@ -8,7 +8,8 @@ export 'jolt_ffi_generated.dart'
         WorldBody,
         BodyConfig,
         ConvexShapeConfig,
-        ConvexShapeConfigType;
+        ConvexShapeConfigType,
+        CompoundShapeConfig;
 
 final ffi.DynamicLibrary dylib = () {
   const String _libPath = 'plugins/ffi/jolt';

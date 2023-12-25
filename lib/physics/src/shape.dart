@@ -16,6 +16,9 @@ class Shape implements ffi.Finalizable {
 final ffi.Pointer<jolt.ConvexShapeConfig> _convexShapeConfig =
     jolt.bindings.get_convex_shape_config();
 
+final ffi.Pointer<jolt.CompoundShapeConfig> _compoundShapeConfig =
+    jolt.bindings.get_compound_shape_config();
+
 class ConvexShapeSettings {
   // Uniform density of the interior of the convex object (kg / m^3)
   double density = 1000.0;
@@ -153,5 +156,46 @@ class ConvexHullShape extends ConvexShape {
     final nativeShape = unwrappedCreateConvexShape(
         _convexShapeConfig, settings.points, settings.points.length ~/ 3);
     return ConvexHullShape._(nativeShape);
+  }
+}
+
+class CompoundShapeSettings {
+  _copyToCompoundShapeConfig(ffi.Pointer<jolt.CompoundShapeConfig> config) {
+    if (_shapes.length >= 16) {
+      throw new UnimplementedError("TODO: Support for more than 16 sub shapes");
+    }
+    config.ref.num_shapes = _shapes.length;
+    for (int i = 0; i < _shapes.length; i++) {
+      config.ref.shapes[i].position[0] = _positions[i].x;
+      config.ref.shapes[i].position[1] = _positions[i].y;
+      config.ref.shapes[i].position[2] = _positions[i].z;
+      config.ref.shapes[i].rotation[0] = _rotations[i].x;
+      config.ref.shapes[i].rotation[1] = _rotations[i].y;
+      config.ref.shapes[i].rotation[2] = _rotations[i].z;
+      config.ref.shapes[i].rotation[3] = _rotations[i].w;
+      config.ref.shapes[i].shape = _shapes[i]._nativeShape;
+    }
+  }
+
+  final List<Shape> _shapes = [];
+  final List<Vector3> _positions = [];
+  final List<Quaternion> _rotations = [];
+
+  void addShape(Shape shape, Vector3 position, Quaternion rotation) {
+    _shapes.add(shape);
+    _positions.add(position);
+    _rotations.add(rotation);
+  }
+}
+
+class CompoundShape extends Shape {
+  CompoundShape._(ffi.Pointer<jolt.CollisionShape> nativeShape)
+      : super._(nativeShape);
+
+  factory CompoundShape(CompoundShapeSettings settings) {
+    settings._copyToCompoundShapeConfig(_compoundShapeConfig);
+    final nativeShape =
+        jolt.bindings.create_compound_shape(_compoundShapeConfig);
+    return CompoundShape._(nativeShape);
   }
 }

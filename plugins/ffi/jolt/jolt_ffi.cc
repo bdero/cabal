@@ -260,12 +260,21 @@ FFI_PLUGIN_EXPORT ConvexShapeConfig* get_convex_shape_config() {
   return &config;
 }
 
+FFI_PLUGIN_EXPORT CompoundShapeConfig* get_compound_shape_config() {
+  static CompoundShapeConfig config;
+  return &config;
+}
+
 void assert_shape_result(const char* kind, const JPH::ShapeSettings::ShapeResult& result) {
   // TODO(johnmccutchan): Find out how to throw this as an exception into Dart.
   if (result.HasError()) {
     fprintf(stderr, "Shape %s creation failed: %s\n", kind, result.GetError().c_str());
   }
   assert(!result.HasError());
+}
+
+FFI_PLUGIN_EXPORT CollisionShape* create_compound_shape(CompoundShapeConfig* conifg) {
+  return nullptr;
 }
 
 FFI_PLUGIN_EXPORT CollisionShape* create_convex_shape(ConvexShapeConfig* config, float* points, int num_points) {

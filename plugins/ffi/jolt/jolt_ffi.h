@@ -65,6 +65,17 @@ struct ConvexShapeConfig {
   float payload[3];
 };
 
+struct CompoundShapeConfig {
+  struct PerShape {
+    CollisionShape* shape;
+    float position[3];
+    float rotation[4];
+  };
+  // TODO(johnmccutchan): Don't artificially limit the number of compound shapes we can pass.
+  PerShape shapes[16];
+  int num_shapes = 0;
+};
+
 // World.
 FFI_PLUGIN_EXPORT World* create_world();
 
@@ -85,6 +96,11 @@ FFI_PLUGIN_EXPORT void destroy_world(World* world);
 FFI_PLUGIN_EXPORT ConvexShapeConfig* get_convex_shape_config();
 
 FFI_PLUGIN_EXPORT CollisionShape* create_convex_shape(ConvexShapeConfig* config, float* points, int num_points);
+
+// NOTE: THere is only one instance of a CompoundShapeConfig available right now.
+FFI_PLUGIN_EXPORT CompoundShapeConfig* get_compound_shape_config();
+
+FFI_PLUGIN_EXPORT CollisionShape* create_compound_shape(CompoundShapeConfig* conifg);
 
 FFI_PLUGIN_EXPORT void shape_set_dart_owner(CollisionShape* shape, Dart_Handle owner);
 

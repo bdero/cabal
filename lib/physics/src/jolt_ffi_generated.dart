@@ -545,6 +545,32 @@ class Jolt {
       ffi.Pointer<CollisionShape> Function(ffi.Pointer<ConvexShapeConfig>,
           ffi.Pointer<ffi.Float>, int)>(isLeaf: true);
 
+  /// NOTE: THere is only one instance of a CompoundShapeConfig available right now.
+  ffi.Pointer<CompoundShapeConfig> get_compound_shape_config() {
+    return _get_compound_shape_config();
+  }
+
+  late final _get_compound_shape_configPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<CompoundShapeConfig> Function()>>(
+          'get_compound_shape_config');
+  late final _get_compound_shape_config = _get_compound_shape_configPtr
+      .asFunction<ffi.Pointer<CompoundShapeConfig> Function()>();
+
+  ffi.Pointer<CollisionShape> create_compound_shape(
+    ffi.Pointer<CompoundShapeConfig> conifg,
+  ) {
+    return _create_compound_shape(
+      conifg,
+    );
+  }
+
+  late final _create_compound_shapePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<CollisionShape> Function(
+              ffi.Pointer<CompoundShapeConfig>)>>('create_compound_shape');
+  late final _create_compound_shape = _create_compound_shapePtr.asFunction<
+      ffi.Pointer<CollisionShape> Function(ffi.Pointer<CompoundShapeConfig>)>();
+
   void shape_set_dart_owner(
     ffi.Pointer<CollisionShape> shape,
     Object owner,
@@ -868,6 +894,13 @@ class _SymbolAddresses {
               ffi.Pointer<ffi.Float>,
               ffi.Int)>> get create_convex_shape =>
       _library._create_convex_shapePtr;
+  ffi.Pointer<ffi.NativeFunction<ffi.Pointer<CompoundShapeConfig> Function()>>
+      get get_compound_shape_config => _library._get_compound_shape_configPtr;
+  ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Pointer<CollisionShape> Function(
+              ffi.Pointer<CompoundShapeConfig>)>> get create_compound_shape =>
+      _library._create_compound_shapePtr;
   ffi.Pointer<
           ffi.NativeFunction<
               ffi.Void Function(ffi.Pointer<CollisionShape>, ffi.Handle)>>
@@ -1410,4 +1443,23 @@ final class ConvexShapeConfig extends ffi.Struct {
   /// payload is not used.
   @ffi.Array.multi([3])
   external ffi.Array<ffi.Float> payload;
+}
+
+final class CompoundShapeConfig extends ffi.Struct {
+  /// TODO(johnmccutchan): Don't artificially limit the number of compound shapes we can pass.
+  @ffi.Array.multi([16])
+  external ffi.Array<PerShape> shapes;
+
+  @ffi.Int()
+  external int num_shapes;
+}
+
+final class PerShape extends ffi.Struct {
+  external ffi.Pointer<CollisionShape> shape;
+
+  @ffi.Array.multi([3])
+  external ffi.Array<ffi.Float> position;
+
+  @ffi.Array.multi([4])
+  external ffi.Array<ffi.Float> rotation;
 }
