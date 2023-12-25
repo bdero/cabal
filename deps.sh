@@ -33,7 +33,7 @@ function build_physics {
 
 function build_jolt {
   pushd $SCRIPT_DIR/plugins/ffi/jolt
-  cmake --config=Release .
+  cmake .
   make -j 4
   popd
   dart run ffigen --config $SCRIPT_DIR/plugins/ffi/jolt.ffigen.yaml
@@ -41,7 +41,7 @@ function build_jolt {
 
 function build_v_hacd {
   pushd $SCRIPT_DIR/plugins/ffi/v-hacd
-  cmake --config=Release .
+  cmake .
   make -j 4
   popd
   dart run ffigen --config $SCRIPT_DIR/plugins/ffi/v-hacd.ffigen.yaml
@@ -58,9 +58,9 @@ function build_shaders {
 }
 
 # build_physics
-build_shaders
 build_jolt
 build_v_hacd
+build_shaders
 
 set +x
 
