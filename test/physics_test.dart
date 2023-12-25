@@ -68,4 +68,28 @@ main() {
       world.step(dt);
     }
   });
+
+  test('boxes stack', () {
+    var unitCube = BoxShape(Vector3(2.0, 2.0, 2.0));
+    var box0 = world.createRigidBody(BodySettings(unitCube)
+      ..position = Vector3(0, 6.0, 0)
+      ..motionType = MotionType.dynamic);
+    var box1 = world.createRigidBody(BodySettings(unitCube)
+      ..position = Vector3(0, 3.0, 0)
+      ..motionType = MotionType.dynamic);
+    world.addBody(box0);
+    world.addBody(box1);
+    final plane = BoxShape(Vector3(100, 1, 100));
+    final ground = world.createRigidBody(BodySettings(plane)
+      ..position = Vector3(0.0, -1.0, 0)
+      ..motionType = MotionType.static);
+    world.addBody(ground);
+
+    while (box0.active || box1.active) {
+      world.step(dt);
+      print(box1.position.y);
+    }
+    print(box0.position);
+    print(box1.position);
+  });
 }

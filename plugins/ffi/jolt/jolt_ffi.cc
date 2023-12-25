@@ -280,15 +280,9 @@ FFI_PLUGIN_EXPORT Dart_Handle shape_get_dart_owner(CollisionShape *shape) {
 FFI_PLUGIN_EXPORT void destroy_shape(CollisionShape *shape) { delete shape; }
 
 void toJolt(BodyConfig *config, BodyCreationSettings *settings) {
-  if (config->shape != nullptr) {
-    settings->SetShape(config->shape->shape());
-    settings->mOverrideMassProperties =
-        EOverrideMassProperties::CalculateMassAndInertia;
-  } else {
-    settings->SetShape(nullptr);
-    settings->mOverrideMassProperties =
-        EOverrideMassProperties::MassAndInertiaProvided;
-  }
+  settings->SetShape(config->shape->shape());
+  settings->mOverrideMassProperties =
+      EOverrideMassProperties::CalculateMassAndInertia;
   settings->mMotionType = static_cast<EMotionType>(config->motion_type);
   settings->mMotionQuality =
       static_cast<EMotionQuality>(config->motion_quality);

@@ -152,8 +152,8 @@ packages:
   flutter_gpu:
     dependency: "direct main"
     description:
-      path: "/Users/bdero/projects/flutter/engine/src/flutter/lib/gpu"
-      relative: false
+      path: "../engine/src/flutter/lib/gpu"
+      relative: true
     source: path
     version: "0.0.0"
   flutter_lints:

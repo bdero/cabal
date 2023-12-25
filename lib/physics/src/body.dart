@@ -78,7 +78,7 @@ class Body implements ffi.Finalizable {
     unwrappedPositionSetter(_nativeBody, position.storage);
   }
 
-  final unwrappedPositionGetter = jolt.dylib.lookupFunction<
+  static final unwrappedPositionGetter = jolt.dylib.lookupFunction<
       ffi.Void Function(ffi.Pointer<jolt.WorldBody>, ffi.Pointer<ffi.Float>),
       void Function(ffi.Pointer<jolt.WorldBody>,
           Float32List)>('body_get_position', isLeaf: true);
@@ -89,7 +89,7 @@ class Body implements ffi.Finalizable {
     return r;
   }
 
-  final unwrappedRotationSetter = jolt.dylib.lookupFunction<
+  static final unwrappedRotationSetter = jolt.dylib.lookupFunction<
       ffi.Void Function(ffi.Pointer<jolt.WorldBody>, ffi.Pointer<ffi.Float>),
       void Function(ffi.Pointer<jolt.WorldBody>,
           Float32List)>('body_set_rotation', isLeaf: true);
@@ -98,7 +98,7 @@ class Body implements ffi.Finalizable {
     unwrappedRotationSetter(_nativeBody, rotation.storage);
   }
 
-  final unwrappedRotationGetter = jolt.dylib.lookupFunction<
+  static final unwrappedRotationGetter = jolt.dylib.lookupFunction<
       ffi.Void Function(ffi.Pointer<jolt.WorldBody>, ffi.Pointer<ffi.Float>),
       void Function(ffi.Pointer<jolt.WorldBody>,
           Float32List)>('body_get_rotation', isLeaf: true);
@@ -109,7 +109,7 @@ class Body implements ffi.Finalizable {
     return q;
   }
 
-  final unwrappedWorldTransformGetter = jolt.dylib.lookupFunction<
+  static final unwrappedWorldTransformGetter = jolt.dylib.lookupFunction<
       ffi.Void Function(ffi.Pointer<jolt.WorldBody>, ffi.Pointer<ffi.Float>),
       void Function(ffi.Pointer<jolt.WorldBody>,
           Float32List)>('body_get_world_matrix', isLeaf: true);
@@ -120,7 +120,7 @@ class Body implements ffi.Finalizable {
     return m;
   }
 
-  final unwrapperCenterOfMassTransformGetter = jolt.dylib.lookupFunction<
+  static final unwrapperCenterOfMassTransformGetter = jolt.dylib.lookupFunction<
       ffi.Void Function(ffi.Pointer<jolt.WorldBody>, ffi.Pointer<ffi.Float>),
       void Function(ffi.Pointer<jolt.WorldBody>,
           Float32List)>('body_get_com_matrix', isLeaf: true);
