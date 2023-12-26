@@ -54,7 +54,7 @@ class BoxSpawnSystem extends oxy.System {
         geometry: CuboidGeometry(boxExtents),
         material: UnlitMaterial(colorTexture: boxTexture));
 
-    final box = phys.BoxShape(boxExtents / 2);
+    final box = phys.BoxShape(phys.BoxShapeSettings(boxExtents / 2));
     final body = physicsWorld.createRigidBody(
         phys.BodySettings(box)..motionType = phys.MotionType.dynamic)
       ..position = vm.Vector3(0, 10, 0)
@@ -92,7 +92,8 @@ class CabalGame extends ECSGame {
     /// Create static floor and box spawner.
     ///
 
-    final floorPlane = phys.BoxShape(vm.Vector3(100, 1, 100));
+    final floorPlane =
+        phys.BoxShape(phys.BoxShapeSettings(vm.Vector3(100, 1, 100)));
     final floor = physicsWorld.createRigidBody(
         phys.BodySettings(floorPlane)..motionType = phys.MotionType.static);
     world.createEntity().add<RigidBodyComponent, phys.RigidBody>(floor);
