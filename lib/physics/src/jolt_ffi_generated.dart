@@ -403,6 +403,34 @@ class Jolt {
           Dart_UpdateFinalizableExternalSize_Type value) =>
       _Dart_UpdateFinalizableExternalSize_DL.value = value;
 
+  ffi.Pointer<ffi.Uint8> native_malloc(
+    int byte_size,
+  ) {
+    return _native_malloc(
+      byte_size,
+    );
+  }
+
+  late final _native_mallocPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Uint8> Function(ffi.Int)>>(
+          'native_malloc');
+  late final _native_malloc =
+      _native_mallocPtr.asFunction<ffi.Pointer<ffi.Uint8> Function(int)>();
+
+  void native_free(
+    ffi.Pointer<ffi.Void> p,
+  ) {
+    return _native_free(
+      p,
+    );
+  }
+
+  late final _native_freePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+          'native_free');
+  late final _native_free =
+      _native_freePtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
   /// World.
   ffi.Pointer<World> create_world() {
     return _create_world();
@@ -499,6 +527,23 @@ class Jolt {
       'world_step');
   late final _world_step =
       _world_stepPtr.asFunction<int Function(ffi.Pointer<World>, double)>();
+
+  void world_raycast(
+    ffi.Pointer<World> world,
+    ffi.Pointer<RayCastConfig> config,
+  ) {
+    return _world_raycast(
+      world,
+      config,
+    );
+  }
+
+  late final _world_raycastPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<World>,
+              ffi.Pointer<RayCastConfig>)>>('world_raycast');
+  late final _world_raycast = _world_raycastPtr.asFunction<
+      void Function(ffi.Pointer<World>, ffi.Pointer<RayCastConfig>)>();
 
   void destroy_world(
     ffi.Pointer<World> world,
@@ -951,6 +996,10 @@ class _SymbolAddresses {
   ffi.Pointer<Dart_UpdateFinalizableExternalSize_Type>
       get Dart_UpdateFinalizableExternalSize_DL =>
           _library._Dart_UpdateFinalizableExternalSize_DL;
+  ffi.Pointer<ffi.NativeFunction<ffi.Pointer<ffi.Uint8> Function(ffi.Int)>>
+      get native_malloc => _library._native_mallocPtr;
+  ffi.Pointer<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>
+      get native_free => _library._native_freePtr;
   ffi.Pointer<ffi.NativeFunction<ffi.Pointer<World> Function()>>
       get create_world => _library._create_worldPtr;
   ffi.Pointer<
@@ -974,6 +1023,11 @@ class _SymbolAddresses {
   ffi.Pointer<
           ffi.NativeFunction<ffi.Int Function(ffi.Pointer<World>, ffi.Float)>>
       get world_step => _library._world_stepPtr;
+  ffi.Pointer<
+          ffi.NativeFunction<
+              ffi.Void Function(
+                  ffi.Pointer<World>, ffi.Pointer<RayCastConfig>)>>
+      get world_raycast => _library._world_raycastPtr;
   ffi.Pointer<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<World>)>>
       get destroy_world => _library._destroy_worldPtr;
   ffi.Pointer<ffi.NativeFunction<ffi.Pointer<ConvexShapeConfig> Function()>>
@@ -1577,4 +1631,17 @@ final class PerShape extends ffi.Struct {
 
   @ffi.Array.multi([4])
   external ffi.Array<ffi.Float> rotation;
+}
+
+final class RayCastConfig extends ffi.Struct {
+  @ffi.Array.multi([3])
+  external ffi.Array<ffi.Float> start;
+
+  @ffi.Array.multi([3])
+  external ffi.Array<ffi.Float> end;
+
+  external ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Float Function(ffi.Handle body, ffi.Float fraction,
+              ffi.Pointer<ffi.Float> n)>> cb;
 }

@@ -12,3 +12,5 @@ import 'src/jolt_ffi.dart' as jolt;
 part 'src/world.dart';
 part 'src/body.dart';
 part 'src/shape.dart';
+part 'src/query.dart';
+part 'src/util.dart';

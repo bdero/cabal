@@ -76,6 +76,16 @@ struct CompoundShapeConfig {
   int num_shapes = 0;
 };
 
+struct RayCastConfig {
+  float start[3];
+  float end[3];
+  float (*cb)(Dart_Handle body, float fraction, const float* n);
+};
+
+FFI_PLUGIN_EXPORT uint8_t* native_malloc(int byte_size);
+
+FFI_PLUGIN_EXPORT void native_free(void* p);
+
 // World.
 FFI_PLUGIN_EXPORT World* create_world();
 
@@ -89,6 +99,9 @@ FFI_PLUGIN_EXPORT void world_add_body(World* world, WorldBody* body, int activat
 FFI_PLUGIN_EXPORT void world_remove_body(World* world, WorldBody* body);
 
 FFI_PLUGIN_EXPORT int world_step(World* world, float dt);
+
+FFI_PLUGIN_EXPORT void world_raycast(World* world,
+                                     RayCastConfig* config);
 
 FFI_PLUGIN_EXPORT void destroy_world(World* world);
 

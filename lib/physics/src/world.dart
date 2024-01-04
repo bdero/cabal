@@ -68,4 +68,33 @@ class World implements ffi.Finalizable {
     }
     jolt.bindings.world_remove_body(_nativeWorld, body._nativeBody);
   }
+
+  void _rayCast(Vector3 start, Vector3 end, OnRayHit onRayHit) {
+    double closure(
+        Object body, double fraction, ffi.Pointer<ffi.Float> normal) {
+      assert(body is Body);
+      RayHit hit = RayHit(body as Body,
+          Vector3.fromFloat32List(normal.asTypedList(3)), fraction, start, end);
+      return onRayHit(hit);
+    }
+
+    final callback = ffi.NativeCallable<
+            ffi.Float Function(
+                ffi.Handle, ffi.Float, ffi.Pointer<ffi.Float>)>.isolateLocal(
+        closure,
+        exceptionalReturn: 0.0);
+
+    final ffi.Pointer<jolt.RayCastConfig> native_config =
+        calloc.allocate(ffi.sizeOf<jolt.RayCastConfig>());
+
+    copyVector3(start, native_config.ref.start);
+    copyVector3(end, native_config.ref.end);
+    native_config.ref.cb = callback.nativeFunction;
+
+    jolt.bindings.world_raycast(_nativeWorld, native_config);
+
+    calloc.free(native_config);
+
+    callback.close();
+  }
 }

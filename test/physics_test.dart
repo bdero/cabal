@@ -7,7 +7,11 @@ import 'dart:math';
 
 main() {
   // Create a physics world. Gravity is -Y.
-  final world = World();
+  late World world;
+
+  setUp(() {
+    world = new World();
+  });
 
   // // 1/60.
   final dt = 0.0625;
@@ -148,5 +152,21 @@ main() {
         Uint32List.fromList([0, 1, 2, 0, 2, 3])));
     expect(triangleMesh.localBounds.min, equals(Vector3(0, 0, 0)));
     expect(triangleMesh.localBounds.max, equals(Vector3(1, 1, 0)));
+  });
+
+  test('raycast', () {
+    final plane = BoxShape(BoxShapeSettings(Vector3(100, 1, 100)));
+    final ground = world
+        .createRigidBody(BodySettings(plane)..position = Vector3(0.0, 0.0, 0));
+    expect(ground.position, equals(Vector3(0.0, 0.0, 0)));
+    world.addBody(ground);
+    int count = 0;
+    rayCast(world, Vector3(0, 10, 0), Vector3(0, -10, 0), (RayHit hit) {
+      expect(identical(hit.body, ground), isTrue);
+      expect(hit.normal, equals(Vector3(0, 1, 0)));
+      count++;
+      return hit.fraction;
+    });
+    expect(count, equals(1));
   });
 }

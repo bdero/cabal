@@ -22,6 +22,8 @@
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayerInterfaceMask.h>
 #include <Jolt/Physics/Collision/BroadPhase/ObjectVsBroadPhaseLayerFilterMask.h>
 #include <Jolt/Physics/Collision/ObjectLayerPairFilterMask.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/TaperedCapsuleShape.h>
@@ -32,6 +34,7 @@
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/RegisterTypes.h>
+#include <Jolt/Physics/Body/BodyLock.h>
 
 // Disable common warnings triggered by Jolt, you can use
 // JPH_SUPPRESS_WARNING_PUSH / JPH_SUPPRESS_WARNING_POP to store and restore the
@@ -64,6 +67,14 @@ constexpr uint32 LayerFilterMoving = 1;
 constexpr uint32 LayerFilterStatic = 2;
 constexpr uint32 LayerFilterSensor = 4;
 constexpr uint32 LayerFilterAll = LayerFilterMoving | LayerFilterStatic | LayerFilterSensor;
+
+FFI_PLUGIN_EXPORT uint8_t* native_malloc(int byte_size) {
+  return reinterpret_cast<uint8_t*>(malloc(byte_size));
+}
+
+FFI_PLUGIN_EXPORT void native_free(void* p) {
+  free(p);
+}
 
 class World {
 public:
@@ -245,6 +256,56 @@ FFI_PLUGIN_EXPORT int world_step(World *world, float dt) {
   EPhysicsUpdateError error = world->physics_system().Update(
       dt, 1, world->temp_allocator(), world->job_system());
   return (int)error;
+}
+
+FFI_PLUGIN_EXPORT void world_raycast(World* world,
+                                     RayCastConfig* config) {
+  const NarrowPhaseQuery& query = world->physics_system().GetNarrowPhaseQuery();
+
+  RRayCast in_ray;
+  float* s3 = &config->start[0];
+  float* e3 = &config->end[0];
+  in_ray.mOrigin.Set(s3[0], s3[1], s3[2]);
+  in_ray.mDirection.Set(e3[0] - s3[0], e3[1] - s3[1], e3[2] - s3[2]);
+
+  class Collector : public CastRayCollector {
+    public:
+    Collector(World* world, RayCastConfig* config, const RRayCast& in_ray) : world_(world), config_(config), in_ray_(in_ray) {}
+
+    void AddHit(const RayCastResult &inResult) override {
+      const auto& id = inResult.mBodyID;
+      float n[3] = { 0.0f, 0.0f, 0.0f };
+      {
+        // Populate normal.
+        const BodyLockInterfaceLocking& lock_interface	= world_->physics_system().GetBodyLockInterface();
+        BodyLockRead lock(lock_interface, id);
+        if (!lock.Succeeded()) {
+          // Body has been deleted out from under us.
+          return;
+        }
+        const Body& body = lock.GetBody();
+        *reinterpret_cast<Vec3*>(&n[0]) = body.GetWorldSpaceSurfaceNormal(inResult.mSubShapeID2, in_ray_.GetPointOnRay(inResult.mFraction));
+      }
+
+      Dart_Handle owner = world_->GetDartOwnerForBody(id);
+      
+      // TODO(johnmccutchan): Include subshape id in cb.        
+      float early_out_fraction = config_->cb(owner, inResult.mFraction, n);
+      if (GetEarlyOutFraction() > early_out_fraction) {
+        UpdateEarlyOutFraction(early_out_fraction);
+      }
+      ResetEarlyOutFraction(early_out_fraction);
+    }
+
+    private:
+    World* world_;
+    RayCastConfig* config_;
+    const RRayCast& in_ray_;
+  };
+    
+  Collector collector(world, config, in_ray);
+  RayCastSettings settings;
+  query.CastRay(in_ray, settings, collector);
 }
 
 FFI_PLUGIN_EXPORT void destroy_world(World *world) {
