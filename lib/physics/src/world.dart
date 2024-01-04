@@ -45,9 +45,10 @@ class World implements ffi.Finalizable {
 
   RigidBody createRigidBody(BodySettings settings) {
     final ffi.Pointer<jolt.BodyConfig> config =
-        jolt.bindings.world_get_body_config(_nativeWorld);
+        calloc.allocate(ffi.sizeOf<jolt.BodyConfig>());
     settings._copyToConfig(config);
     final nativeBody = jolt.bindings.world_create_body(_nativeWorld, config);
+    calloc.free(config);
     return RigidBody._(this, nativeBody, settings.shape);
   }
 

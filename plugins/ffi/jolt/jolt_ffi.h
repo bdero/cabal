@@ -66,14 +66,9 @@ struct ConvexShapeConfig {
 };
 
 struct CompoundShapeConfig {
-  struct PerShape {
-    CollisionShape* shape;
-    float position[3];
-    float rotation[4];
-  };
-  // TODO(johnmccutchan): Don't artificially limit the number of compound shapes we can pass.
-  PerShape shapes[16];
-  int num_shapes = 0;
+  CollisionShape* shape;
+  float position[3];
+  float rotation[4];
 };
 
 struct RayCastConfig {
@@ -89,9 +84,6 @@ FFI_PLUGIN_EXPORT void native_free(void* p);
 // World.
 FFI_PLUGIN_EXPORT World* create_world();
 
-// NOTE: There is only one instance of a BodyConfig available right now.
-FFI_PLUGIN_EXPORT BodyConfig* world_get_body_config(World* world);
-
 FFI_PLUGIN_EXPORT WorldBody* world_create_body(World* world, BodyConfig* conifg);
 
 FFI_PLUGIN_EXPORT void world_add_body(World* world, WorldBody* body, int activation);
@@ -105,15 +97,9 @@ FFI_PLUGIN_EXPORT void world_raycast(World* world,
 
 FFI_PLUGIN_EXPORT void destroy_world(World* world);
 
-// NOTE: There is only one instance of a ConvexShapeConfig available right now.
-FFI_PLUGIN_EXPORT ConvexShapeConfig* get_convex_shape_config();
-
 FFI_PLUGIN_EXPORT CollisionShape* create_convex_shape(ConvexShapeConfig* config, float* points, int num_points);
 
-// NOTE: There is only one instance of a CompoundShapeConfig available right now.
-FFI_PLUGIN_EXPORT CompoundShapeConfig* get_compound_shape_config();
-
-FFI_PLUGIN_EXPORT CollisionShape* create_compound_shape(CompoundShapeConfig* config);
+FFI_PLUGIN_EXPORT CollisionShape* create_compound_shape(CompoundShapeConfig* shapes, int num_shapes);
 
 FFI_PLUGIN_EXPORT CollisionShape* create_mesh_shape(float* vertices, int num_vertices, uint32_t* triangles, int num_triangles);
 

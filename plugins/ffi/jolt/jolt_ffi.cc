@@ -118,7 +118,6 @@ public:
     return physics_system_->GetBodyInterface();
   }
 
-  BodyConfig *body_config() { return &body_config_; }
 
 private:
   std::unique_ptr<TempAllocator> temp_allocator_;
@@ -129,7 +128,6 @@ private:
   std::unique_ptr<ObjectLayerPairFilterMask>
       object_vs_object_layer_pair_filter_;
   std::unique_ptr<PhysicsSystem> physics_system_;
-  BodyConfig body_config_;
 
   // This is the max amount of rigid bodies that you can add to the physics
   // system. If you try to add more you'll get an error. Note: This value is low
@@ -320,20 +318,6 @@ FFI_PLUGIN_EXPORT void world_remove_body(World* world, WorldBody* body) {
   world->body_interface().RemoveBody(body->id());
 }
 
-FFI_PLUGIN_EXPORT BodyConfig *world_get_body_config(World *world) {
-  return world->body_config();
-}
-
-FFI_PLUGIN_EXPORT ConvexShapeConfig* get_convex_shape_config() {
-  static ConvexShapeConfig config;
-  return &config;
-}
-
-FFI_PLUGIN_EXPORT CompoundShapeConfig* get_compound_shape_config() {
-  static CompoundShapeConfig config;
-  return &config;
-}
-
 void assert_shape_result(const char* kind, const JPH::ShapeSettings::ShapeResult& result) {
   // TODO(johnmccutchan): Find out how to throw this as an exception into Dart.
   if (result.HasError()) {
@@ -357,10 +341,10 @@ FFI_PLUGIN_EXPORT CollisionShape* create_mesh_shape(float* vertices, int num_ver
   return new CollisionShape(result.Get());
 }
 
-FFI_PLUGIN_EXPORT CollisionShape* create_compound_shape(CompoundShapeConfig* config) {
+FFI_PLUGIN_EXPORT CollisionShape* create_compound_shape(CompoundShapeConfig* shapes, int num_shapes) {
   StaticCompoundShapeSettings settings;
-  for (int i = 0; i < config->num_shapes; i++) {
-    const auto& per_shape = config->shapes[i];
+  for (int i = 0; i < num_shapes; i++) {
+    const auto& per_shape = shapes[i];
     settings.AddShape(
       Vec3(per_shape.position[0], per_shape.position[1], per_shape.position[2]),
       Quat(per_shape.rotation[0], per_shape.rotation[1], per_shape.rotation[2], per_shape.rotation[3]),

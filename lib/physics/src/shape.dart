@@ -37,13 +37,6 @@ class Shape implements ffi.Finalizable {
   }
 }
 
-// We currenlty only have a single config instance.
-final ffi.Pointer<jolt.ConvexShapeConfig> _convexShapeConfig =
-    jolt.bindings.get_convex_shape_config();
-
-final ffi.Pointer<jolt.CompoundShapeConfig> _compoundShapeConfig =
-    jolt.bindings.get_compound_shape_config();
-
 class ConvexShapeSettings {
   // Uniform density of the interior of the convex object (kg / m^3)
   double density = 1000.0;
@@ -81,9 +74,12 @@ class BoxShape extends ConvexShape {
       : super._(nativeShape);
 
   factory BoxShape(BoxShapeSettings settings) {
-    settings._copyToConvexShapeConfig(_convexShapeConfig);
+    ffi.Pointer<jolt.ConvexShapeConfig> config =
+        calloc.allocate(ffi.sizeOf<jolt.ConvexShapeConfig>());
+    settings._copyToConvexShapeConfig(config);
     final nativeShape =
-        jolt.bindings.create_convex_shape(_convexShapeConfig, ffi.nullptr, 0);
+        jolt.bindings.create_convex_shape(config, ffi.nullptr, 0);
+    calloc.free(config);
     return BoxShape._(nativeShape);
   }
 }
@@ -108,9 +104,12 @@ class SphereShape extends ConvexShape {
       : super._(nativeShape);
 
   factory SphereShape(SphereShapeSettings settings) {
-    settings._copyToConvexShapeConfig(_convexShapeConfig);
+    ffi.Pointer<jolt.ConvexShapeConfig> config =
+        calloc.allocate(ffi.sizeOf<jolt.ConvexShapeConfig>());
+    settings._copyToConvexShapeConfig(config);
     final nativeShape =
-        jolt.bindings.create_convex_shape(_convexShapeConfig, ffi.nullptr, 0);
+        jolt.bindings.create_convex_shape(config, ffi.nullptr, 0);
+    calloc.free(config);
     return SphereShape._(nativeShape);
   }
 }
@@ -144,9 +143,12 @@ class CapsuleShape extends ConvexShape {
       : super._(nativeShape);
 
   factory CapsuleShape(CapsuleShapeSettings settings) {
-    settings._copyToConvexShapeConfig(_convexShapeConfig);
+    ffi.Pointer<jolt.ConvexShapeConfig> config =
+        calloc.allocate(ffi.sizeOf<jolt.ConvexShapeConfig>());
+    settings._copyToConvexShapeConfig(config);
     final nativeShape =
-        jolt.bindings.create_convex_shape(_convexShapeConfig, ffi.nullptr, 0);
+        jolt.bindings.create_convex_shape(config, ffi.nullptr, 0);
+    calloc.free(config);
     return CapsuleShape._(nativeShape);
   }
 }
@@ -177,34 +179,38 @@ class ConvexHullShape extends ConvexShape {
           int)>('create_convex_shape', isLeaf: true);
 
   factory ConvexHullShape(ConvexHullShapeSettings settings) {
-    settings._copyToConvexShapeConfig(_convexShapeConfig);
+    ffi.Pointer<jolt.ConvexShapeConfig> config =
+        calloc.allocate(ffi.sizeOf<jolt.ConvexShapeConfig>());
+    settings._copyToConvexShapeConfig(config);
     final nativeShape = unwrappedCreateConvexShape(
-        _convexShapeConfig, settings.points, settings.points.length ~/ 3);
+        config, settings.points, settings.points.length ~/ 3);
+    calloc.free(config);
     return ConvexHullShape._(nativeShape);
   }
 }
 
 class CompoundShapeSettings {
-  _copyToCompoundShapeConfig(ffi.Pointer<jolt.CompoundShapeConfig> config) {
-    if (_shapes.length >= 16) {
-      throw new UnimplementedError("TODO: Support for more than 16 sub shapes");
-    }
-    config.ref.num_shapes = _shapes.length;
+  _copyToCompoundShapeConfig(
+      List<ffi.Pointer<jolt.CompoundShapeConfig>> configs) {
     for (int i = 0; i < _shapes.length; i++) {
-      config.ref.shapes[i].position[0] = _positions[i].x;
-      config.ref.shapes[i].position[1] = _positions[i].y;
-      config.ref.shapes[i].position[2] = _positions[i].z;
-      config.ref.shapes[i].rotation[0] = _rotations[i].x;
-      config.ref.shapes[i].rotation[1] = _rotations[i].y;
-      config.ref.shapes[i].rotation[2] = _rotations[i].z;
-      config.ref.shapes[i].rotation[3] = _rotations[i].w;
-      config.ref.shapes[i].shape = _shapes[i]._nativeShape;
+      configs[i].ref.position[0] = _positions[i].x;
+      configs[i].ref.position[1] = _positions[i].y;
+      configs[i].ref.position[2] = _positions[i].z;
+      configs[i].ref.rotation[0] = _rotations[i].x;
+      configs[i].ref.rotation[1] = _rotations[i].y;
+      configs[i].ref.rotation[2] = _rotations[i].z;
+      configs[i].ref.rotation[3] = _rotations[i].w;
+      configs[i].ref.shape = _shapes[i]._nativeShape;
     }
   }
 
   final List<Shape> _shapes = [];
   final List<Vector3> _positions = [];
   final List<Quaternion> _rotations = [];
+
+  int get length {
+    return _shapes.length;
+  }
 
   void addShape(Shape shape, Vector3 position, Quaternion rotation) {
     _shapes.add(shape);
@@ -218,9 +224,21 @@ class CompoundShape extends Shape {
       : super._(nativeShape);
 
   factory CompoundShape(CompoundShapeSettings settings) {
-    settings._copyToCompoundShapeConfig(_compoundShapeConfig);
-    final nativeShape =
-        jolt.bindings.create_compound_shape(_compoundShapeConfig);
+    ffi.Pointer<jolt.CompoundShapeConfig> configs = calloc
+        .allocate(ffi.sizeOf<jolt.CompoundShapeConfig>() * settings.length);
+    int configsAddress = configs.address;
+    List<ffi.Pointer<jolt.CompoundShapeConfig>> configs_array =
+        List<ffi.Pointer<jolt.CompoundShapeConfig>>.filled(settings.length,
+            ffi.Pointer<jolt.CompoundShapeConfig>.fromAddress(0));
+    for (int i = 0; i < settings.length; i++) {
+      configs_array[i] = ffi.Pointer<jolt.CompoundShapeConfig>.fromAddress(
+          configsAddress + ffi.sizeOf<jolt.CompoundShapeConfig>() * i);
+    }
+    settings._copyToCompoundShapeConfig(configs_array);
+    final nativeShape = jolt.bindings.create_compound_shape(
+        ffi.Pointer<jolt.CompoundShapeConfig>.fromAddress(configsAddress),
+        settings.length);
+    calloc.free(configs);
     return CompoundShape._(nativeShape);
   }
 }

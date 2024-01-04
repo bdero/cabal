@@ -442,22 +442,6 @@ class Jolt {
   late final _create_world =
       _create_worldPtr.asFunction<ffi.Pointer<World> Function()>();
 
-  /// NOTE: There is only one instance of a BodyConfig available right now.
-  ffi.Pointer<BodyConfig> world_get_body_config(
-    ffi.Pointer<World> world,
-  ) {
-    return _world_get_body_config(
-      world,
-    );
-  }
-
-  late final _world_get_body_configPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<BodyConfig> Function(
-              ffi.Pointer<World>)>>('world_get_body_config');
-  late final _world_get_body_config = _world_get_body_configPtr
-      .asFunction<ffi.Pointer<BodyConfig> Function(ffi.Pointer<World>)>();
-
   ffi.Pointer<WorldBody> world_create_body(
     ffi.Pointer<World> world,
     ffi.Pointer<BodyConfig> conifg,
@@ -559,17 +543,6 @@ class Jolt {
   late final _destroy_world =
       _destroy_worldPtr.asFunction<void Function(ffi.Pointer<World>)>();
 
-  /// NOTE: There is only one instance of a ConvexShapeConfig available right now.
-  ffi.Pointer<ConvexShapeConfig> get_convex_shape_config() {
-    return _get_convex_shape_config();
-  }
-
-  late final _get_convex_shape_configPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<ConvexShapeConfig> Function()>>(
-          'get_convex_shape_config');
-  late final _get_convex_shape_config = _get_convex_shape_configPtr
-      .asFunction<ffi.Pointer<ConvexShapeConfig> Function()>();
-
   ffi.Pointer<CollisionShape> create_convex_shape(
     ffi.Pointer<ConvexShapeConfig> config,
     ffi.Pointer<ffi.Float> points,
@@ -590,31 +563,23 @@ class Jolt {
       ffi.Pointer<CollisionShape> Function(ffi.Pointer<ConvexShapeConfig>,
           ffi.Pointer<ffi.Float>, int)>(isLeaf: true);
 
-  /// NOTE: There is only one instance of a CompoundShapeConfig available right now.
-  ffi.Pointer<CompoundShapeConfig> get_compound_shape_config() {
-    return _get_compound_shape_config();
-  }
-
-  late final _get_compound_shape_configPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<CompoundShapeConfig> Function()>>(
-          'get_compound_shape_config');
-  late final _get_compound_shape_config = _get_compound_shape_configPtr
-      .asFunction<ffi.Pointer<CompoundShapeConfig> Function()>();
-
   ffi.Pointer<CollisionShape> create_compound_shape(
-    ffi.Pointer<CompoundShapeConfig> config,
+    ffi.Pointer<CompoundShapeConfig> shapes,
+    int num_shapes,
   ) {
     return _create_compound_shape(
-      config,
+      shapes,
+      num_shapes,
     );
   }
 
   late final _create_compound_shapePtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<CollisionShape> Function(
-              ffi.Pointer<CompoundShapeConfig>)>>('create_compound_shape');
+          ffi.Pointer<CollisionShape> Function(ffi.Pointer<CompoundShapeConfig>,
+              ffi.Int)>>('create_compound_shape');
   late final _create_compound_shape = _create_compound_shapePtr.asFunction<
-      ffi.Pointer<CollisionShape> Function(ffi.Pointer<CompoundShapeConfig>)>();
+      ffi.Pointer<CollisionShape> Function(
+          ffi.Pointer<CompoundShapeConfig>, int)>();
 
   ffi.Pointer<CollisionShape> create_mesh_shape(
     ffi.Pointer<ffi.Float> vertices,
@@ -1003,10 +968,6 @@ class _SymbolAddresses {
   ffi.Pointer<ffi.NativeFunction<ffi.Pointer<World> Function()>>
       get create_world => _library._create_worldPtr;
   ffi.Pointer<
-          ffi
-          .NativeFunction<ffi.Pointer<BodyConfig> Function(ffi.Pointer<World>)>>
-      get world_get_body_config => _library._world_get_body_configPtr;
-  ffi.Pointer<
           ffi.NativeFunction<
               ffi.Pointer<WorldBody> Function(
                   ffi.Pointer<World>, ffi.Pointer<BodyConfig>)>>
@@ -1030,8 +991,6 @@ class _SymbolAddresses {
       get world_raycast => _library._world_raycastPtr;
   ffi.Pointer<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<World>)>>
       get destroy_world => _library._destroy_worldPtr;
-  ffi.Pointer<ffi.NativeFunction<ffi.Pointer<ConvexShapeConfig> Function()>>
-      get get_convex_shape_config => _library._get_convex_shape_configPtr;
   ffi.Pointer<
       ffi.NativeFunction<
           ffi.Pointer<CollisionShape> Function(
@@ -1039,13 +998,11 @@ class _SymbolAddresses {
               ffi.Pointer<ffi.Float>,
               ffi.Int)>> get create_convex_shape =>
       _library._create_convex_shapePtr;
-  ffi.Pointer<ffi.NativeFunction<ffi.Pointer<CompoundShapeConfig> Function()>>
-      get get_compound_shape_config => _library._get_compound_shape_configPtr;
   ffi.Pointer<
-      ffi.NativeFunction<
-          ffi.Pointer<CollisionShape> Function(
-              ffi.Pointer<CompoundShapeConfig>)>> get create_compound_shape =>
-      _library._create_compound_shapePtr;
+          ffi.NativeFunction<
+              ffi.Pointer<CollisionShape> Function(
+                  ffi.Pointer<CompoundShapeConfig>, ffi.Int)>>
+      get create_compound_shape => _library._create_compound_shapePtr;
   ffi.Pointer<
       ffi.NativeFunction<
           ffi.Pointer<CollisionShape> Function(
@@ -1615,15 +1572,6 @@ final class ConvexShapeConfig extends ffi.Struct {
 }
 
 final class CompoundShapeConfig extends ffi.Struct {
-  /// TODO(johnmccutchan): Don't artificially limit the number of compound shapes we can pass.
-  @ffi.Array.multi([16])
-  external ffi.Array<PerShape> shapes;
-
-  @ffi.Int()
-  external int num_shapes;
-}
-
-final class PerShape extends ffi.Struct {
   external ffi.Pointer<CollisionShape> shape;
 
   @ffi.Array.multi([3])
