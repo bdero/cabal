@@ -22,7 +22,6 @@
 
 /* Begin PBXBuildFile section */
 		199826D72B37C68800C8B1BA /* libJoltFFI.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 199826D62B37C68800C8B1BA /* libJoltFFI.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		19C0FE672B25D8BB004E06A2 /* libflutter_bullet.dylib in Copy Files */ = {isa = PBXBuildFile; fileRef = 19C0FE662B25D8BB004E06A2 /* libflutter_bullet.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C80D7294CF71000263BE5 /* RunnerTests.swift */; };
 		335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */; };
 		33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC10F02044A3C60003C045 /* AppDelegate.swift */; };
@@ -65,7 +64,6 @@
 			dstPath = native;
 			dstSubfolderSpec = 10;
 			files = (
-				19C0FE672B25D8BB004E06A2 /* libflutter_bullet.dylib in Copy Files */,
 			);
 			name = "Copy Files";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -84,7 +82,6 @@
 
 /* Begin PBXFileReference section */
 		199826D62B37C68800C8B1BA /* libJoltFFI.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libJoltFFI.dylib; path = ../plugins/ffi/jolt/libJoltFFI.dylib; sourceTree = "<group>"; };
-		19C0FE662B25D8BB004E06A2 /* libflutter_bullet.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libflutter_bullet.dylib; path = ../gen/libflutter_bullet.dylib; sourceTree = "<group>"; };
 		331C80D5294CF71000263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		331C80D7294CF71000263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		333000ED22D3DE5D00554162 /* Warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Warnings.xcconfig; sourceTree = "<group>"; };
@@ -146,7 +143,6 @@
 			isa = PBXGroup;
 			children = (
 				199826D62B37C68800C8B1BA /* libJoltFFI.dylib */,
-				19C0FE662B25D8BB004E06A2 /* libflutter_bullet.dylib */,
 				33FAB671232836740065AC1E /* Runner */,
 				33CEB47122A05771004F2AC0 /* Flutter */,
 				331C80D6294CF71000263BE5 /* RunnerTests */,
