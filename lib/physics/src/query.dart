@@ -1,10 +1,5 @@
 part of '../physics.dart';
 
-// Casts return body ids
-// physics system gives us a map from id to user data pointer, can use that
-// which means we do the conversion in C++
-// callback invoked for each hit in a cast, use the same pattern as flutter_bulleta
-
 final class RayHit {
   // Body that was hit by the ray.
   final Body body;
