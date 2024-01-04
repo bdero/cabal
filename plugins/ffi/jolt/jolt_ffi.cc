@@ -25,6 +25,7 @@
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/TaperedCapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
+#include <Jolt/Physics/Collision/Shape/StaticCompoundShape.h>
 #include <Jolt/Physics/EActivation.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
@@ -273,8 +274,18 @@ void assert_shape_result(const char* kind, const JPH::ShapeSettings::ShapeResult
   assert(!result.HasError());
 }
 
-FFI_PLUGIN_EXPORT CollisionShape* create_compound_shape(CompoundShapeConfig* conifg) {
-  return nullptr;
+FFI_PLUGIN_EXPORT CollisionShape* create_compound_shape(CompoundShapeConfig* config) {
+  StaticCompoundShapeSettings settings;
+  for (int i = 0; i < config->num_shapes; i++) {
+    const auto& per_shape = config->shapes[i];
+    settings.AddShape(
+      Vec3(per_shape.position[0], per_shape.position[1], per_shape.position[2]),
+      Quat(per_shape.rotation[0], per_shape.rotation[1], per_shape.rotation[2], per_shape.rotation[3]),
+      per_shape.shape->shape());
+  }
+  auto result = settings.Create();
+  assert_shape_result("compound", result);
+  return new CollisionShape(result.Get());
 }
 
 FFI_PLUGIN_EXPORT CollisionShape* create_convex_shape(ConvexShapeConfig* config, float* points, int num_points) {
@@ -333,6 +344,16 @@ FFI_PLUGIN_EXPORT void shape_set_dart_owner(CollisionShape *shape,
 
 FFI_PLUGIN_EXPORT Dart_Handle shape_get_dart_owner(CollisionShape *shape) {
   return CollisionShape::GetDartOwner(shape);
+}
+
+FFI_PLUGIN_EXPORT void shape_get_center_of_mass(CollisionShape* shape, float* v3) {
+  *reinterpret_cast<Vec3 *>(v3) = shape->shape()->GetCenterOfMass();
+}
+
+FFI_PLUGIN_EXPORT void shape_get_local_bounds(CollisionShape* shape, float* min3, float* max3) {
+  AABox box = shape->shape()->GetLocalBounds();
+  *reinterpret_cast<Vec3 *>(min3) = box.mMin;
+  *reinterpret_cast<Vec3 *>(max3) = box.mMax;
 }
 
 FFI_PLUGIN_EXPORT void destroy_shape(CollisionShape *shape) { delete shape; }

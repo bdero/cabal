@@ -10,6 +10,30 @@ class Shape implements ffi.Finalizable {
     _finalizer.attach(this, _nativeShape.cast(), detach: this);
     jolt.bindings.shape_set_dart_owner(_nativeShape, this);
   }
+
+  static final unwrappedGetCenterOfMass = jolt.dylib.lookupFunction<
+      ffi.Void Function(
+          ffi.Pointer<jolt.CollisionShape>, ffi.Pointer<ffi.Float>),
+      void Function(ffi.Pointer<jolt.CollisionShape>,
+          Float32List)>('shape_get_center_of_mass', isLeaf: true);
+
+  Vector3 get centerOfMass {
+    Vector3 r = Vector3.zero();
+    unwrappedGetCenterOfMass(_nativeShape, r.storage);
+    return r;
+  }
+
+  static final unwrappedGetLocalBounds = jolt.dylib.lookupFunction<
+      ffi.Void Function(ffi.Pointer<jolt.CollisionShape>,
+          ffi.Pointer<ffi.Float>, ffi.Pointer<ffi.Float>),
+      void Function(ffi.Pointer<jolt.CollisionShape>, Float32List,
+          Float32List)>('shape_get_local_bounds', isLeaf: true);
+
+  Aabb3 get localBounds {
+    Aabb3 r = Aabb3();
+    unwrappedGetLocalBounds(_nativeShape, r.min.storage, r.max.storage);
+    return r;
+  }
 }
 
 // We currenlty only have a single config instance.

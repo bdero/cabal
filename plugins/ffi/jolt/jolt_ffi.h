@@ -106,6 +106,10 @@ FFI_PLUGIN_EXPORT void shape_set_dart_owner(CollisionShape* shape, Dart_Handle o
 
 FFI_PLUGIN_EXPORT Dart_Handle shape_get_dart_owner(CollisionShape* shape);
 
+FFI_PLUGIN_EXPORT void shape_get_center_of_mass(CollisionShape* shape, float* v3);
+
+FFI_PLUGIN_EXPORT void shape_get_local_bounds(CollisionShape* shape, float* min3, float* max3);
+
 FFI_PLUGIN_EXPORT void destroy_shape(CollisionShape* shape);
 
 // Bodies.

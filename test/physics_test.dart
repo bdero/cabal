@@ -1,4 +1,5 @@
 import 'package:cabal/physics/physics.dart';
+import 'package:test/expect.dart';
 import 'package:vector_math/vector_math.dart';
 import 'dart:typed_data';
 import 'package:test/test.dart';
@@ -130,5 +131,14 @@ main() {
     while (box.active) {
       world.step(dt);
     }
+  });
+
+  test('compound shape', () {
+    var unitCube = BoxShape(BoxShapeSettings(Vector3(2.0, 2.0, 2.0)));
+    var compoundShape = CompoundShape(CompoundShapeSettings()
+      ..addShape(unitCube, Vector3(0.0, 0.0, 0.0), Quaternion.identity())
+      ..addShape(unitCube, Vector3(0.0, 2.0, 0.0), Quaternion.identity()));
+    expect(compoundShape.localBounds.min, equals(Vector3(-2, -3, -2)));
+    expect(compoundShape.localBounds.max, equals(Vector3(2, 3, 2)));
   });
 }

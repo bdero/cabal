@@ -602,6 +602,44 @@ class Jolt {
   late final _shape_get_dart_owner = _shape_get_dart_ownerPtr
       .asFunction<Object Function(ffi.Pointer<CollisionShape>)>();
 
+  void shape_get_center_of_mass(
+    ffi.Pointer<CollisionShape> shape,
+    ffi.Pointer<ffi.Float> v3,
+  ) {
+    return _shape_get_center_of_mass(
+      shape,
+      v3,
+    );
+  }
+
+  late final _shape_get_center_of_massPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<CollisionShape>,
+              ffi.Pointer<ffi.Float>)>>('shape_get_center_of_mass');
+  late final _shape_get_center_of_mass =
+      _shape_get_center_of_massPtr.asFunction<
+          void Function(ffi.Pointer<CollisionShape>, ffi.Pointer<ffi.Float>)>();
+
+  void shape_get_local_bounds(
+    ffi.Pointer<CollisionShape> shape,
+    ffi.Pointer<ffi.Float> min3,
+    ffi.Pointer<ffi.Float> max3,
+  ) {
+    return _shape_get_local_bounds(
+      shape,
+      min3,
+      max3,
+    );
+  }
+
+  late final _shape_get_local_boundsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<CollisionShape>, ffi.Pointer<ffi.Float>,
+              ffi.Pointer<ffi.Float>)>>('shape_get_local_bounds');
+  late final _shape_get_local_bounds = _shape_get_local_boundsPtr.asFunction<
+      void Function(ffi.Pointer<CollisionShape>, ffi.Pointer<ffi.Float>,
+          ffi.Pointer<ffi.Float>)>();
+
   void destroy_shape(
     ffi.Pointer<CollisionShape> shape,
   ) {
@@ -908,6 +946,16 @@ class _SymbolAddresses {
   ffi.Pointer<
           ffi.NativeFunction<ffi.Handle Function(ffi.Pointer<CollisionShape>)>>
       get shape_get_dart_owner => _library._shape_get_dart_ownerPtr;
+  ffi.Pointer<
+          ffi.NativeFunction<
+              ffi.Void Function(
+                  ffi.Pointer<CollisionShape>, ffi.Pointer<ffi.Float>)>>
+      get shape_get_center_of_mass => _library._shape_get_center_of_massPtr;
+  ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<CollisionShape>, ffi.Pointer<ffi.Float>,
+              ffi.Pointer<ffi.Float>)>> get shape_get_local_bounds =>
+      _library._shape_get_local_boundsPtr;
   ffi.Pointer<
           ffi.NativeFunction<ffi.Void Function(ffi.Pointer<CollisionShape>)>>
       get destroy_shape => _library._destroy_shapePtr;
