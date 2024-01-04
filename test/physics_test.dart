@@ -88,7 +88,6 @@ main() {
 
     while (box0.active || box1.active) {
       world.step(dt);
-      print(box1.position.y);
     }
     print(box0.position);
     print(box1.position);
