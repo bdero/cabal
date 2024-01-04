@@ -13,8 +13,6 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_gpu:
     path: ../engine/src/flutter/lib/gpu
-  flutter_bullet:
-    path: deps/flutter_bullet
   vector_math: ^2.1.4
   ffi:
   oxygen: ^0.2.0

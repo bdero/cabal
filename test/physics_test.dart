@@ -141,4 +141,12 @@ main() {
     expect(compoundShape.localBounds.min, equals(Vector3(-2, -3, -2)));
     expect(compoundShape.localBounds.max, equals(Vector3(2, 3, 2)));
   });
+
+  test('mesh shape', () {
+    var triangleMesh = MeshShape(MeshShapeSettings(
+        Float32List.fromList([0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0]),
+        Uint32List.fromList([0, 1, 2, 0, 2, 3])));
+    expect(triangleMesh.localBounds.min, equals(Vector3(0, 0, 0)));
+    expect(triangleMesh.localBounds.max, equals(Vector3(1, 1, 0)));
+  });
 }

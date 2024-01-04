@@ -514,7 +514,7 @@ class Jolt {
   late final _destroy_world =
       _destroy_worldPtr.asFunction<void Function(ffi.Pointer<World>)>();
 
-  /// NOTE: THere is only one instance of a ConvexShapeConfig available right now.
+  /// NOTE: There is only one instance of a ConvexShapeConfig available right now.
   ffi.Pointer<ConvexShapeConfig> get_convex_shape_config() {
     return _get_convex_shape_config();
   }
@@ -545,7 +545,7 @@ class Jolt {
       ffi.Pointer<CollisionShape> Function(ffi.Pointer<ConvexShapeConfig>,
           ffi.Pointer<ffi.Float>, int)>(isLeaf: true);
 
-  /// NOTE: THere is only one instance of a CompoundShapeConfig available right now.
+  /// NOTE: There is only one instance of a CompoundShapeConfig available right now.
   ffi.Pointer<CompoundShapeConfig> get_compound_shape_config() {
     return _get_compound_shape_config();
   }
@@ -557,10 +557,10 @@ class Jolt {
       .asFunction<ffi.Pointer<CompoundShapeConfig> Function()>();
 
   ffi.Pointer<CollisionShape> create_compound_shape(
-    ffi.Pointer<CompoundShapeConfig> conifg,
+    ffi.Pointer<CompoundShapeConfig> config,
   ) {
     return _create_compound_shape(
-      conifg,
+      config,
     );
   }
 
@@ -570,6 +570,28 @@ class Jolt {
               ffi.Pointer<CompoundShapeConfig>)>>('create_compound_shape');
   late final _create_compound_shape = _create_compound_shapePtr.asFunction<
       ffi.Pointer<CollisionShape> Function(ffi.Pointer<CompoundShapeConfig>)>();
+
+  ffi.Pointer<CollisionShape> create_mesh_shape(
+    ffi.Pointer<ffi.Float> vertices,
+    int num_vertices,
+    ffi.Pointer<ffi.Uint32> triangles,
+    int num_triangles,
+  ) {
+    return _create_mesh_shape(
+      vertices,
+      num_vertices,
+      triangles,
+      num_triangles,
+    );
+  }
+
+  late final _create_mesh_shapePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<CollisionShape> Function(ffi.Pointer<ffi.Float>, ffi.Int,
+              ffi.Pointer<ffi.Uint32>, ffi.Int)>>('create_mesh_shape');
+  late final _create_mesh_shape = _create_mesh_shapePtr.asFunction<
+      ffi.Pointer<CollisionShape> Function(
+          ffi.Pointer<ffi.Float>, int, ffi.Pointer<ffi.Uint32>, int)>();
 
   void shape_set_dart_owner(
     ffi.Pointer<CollisionShape> shape,
@@ -939,6 +961,14 @@ class _SymbolAddresses {
           ffi.Pointer<CollisionShape> Function(
               ffi.Pointer<CompoundShapeConfig>)>> get create_compound_shape =>
       _library._create_compound_shapePtr;
+  ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Pointer<CollisionShape> Function(
+              ffi.Pointer<ffi.Float>,
+              ffi.Int,
+              ffi.Pointer<ffi.Uint32>,
+              ffi.Int)>> get create_mesh_shape =>
+      _library._create_mesh_shapePtr;
   ffi.Pointer<
           ffi.NativeFunction<
               ffi.Void Function(ffi.Pointer<CollisionShape>, ffi.Handle)>>

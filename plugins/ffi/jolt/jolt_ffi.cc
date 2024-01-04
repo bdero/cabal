@@ -15,6 +15,7 @@
 #include <Jolt/Core/JobSystemSingleThreaded.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Core/TempAllocator.h>
+#include <Jolt/Geometry/Indexify.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/MassProperties.h>
@@ -25,6 +26,7 @@
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/TaperedCapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
+#include <Jolt/Physics/Collision/Shape/MeshShape.h>
 #include <Jolt/Physics/Collision/Shape/StaticCompoundShape.h>
 #include <Jolt/Physics/EActivation.h>
 #include <Jolt/Physics/PhysicsSettings.h>
@@ -272,6 +274,21 @@ void assert_shape_result(const char* kind, const JPH::ShapeSettings::ShapeResult
     fprintf(stderr, "Shape %s creation failed: %s\n", kind, result.GetError().c_str());
   }
   assert(!result.HasError());
+}
+
+FFI_PLUGIN_EXPORT CollisionShape* create_mesh_shape(float* vertices, int num_vertices, uint32_t* triangles, int num_triangles) {
+  MeshShapeSettings settings;
+  settings.mTriangleVertices.reserve(num_vertices);
+  for (int i = 0; i < num_vertices; i++) {
+    settings.mTriangleVertices.push_back(Float3(vertices[i * 3 + 0], vertices[i * 3 + 1], vertices[i * 3 + 2]));
+  }
+  settings.mIndexedTriangles.reserve(num_triangles);
+  for (int i = 0; i < num_triangles; i++) {
+    settings.mIndexedTriangles.push_back(IndexedTriangle(triangles[i * 3 + 0], triangles[i * 3 + 1], triangles[i * 3 + 2]));
+  }
+  auto result = settings.Create();
+  assert_shape_result("mesh", result);
+  return new CollisionShape(result.Get());
 }
 
 FFI_PLUGIN_EXPORT CollisionShape* create_compound_shape(CompoundShapeConfig* config) {

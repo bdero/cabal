@@ -92,15 +92,17 @@ FFI_PLUGIN_EXPORT int world_step(World* world, float dt);
 
 FFI_PLUGIN_EXPORT void destroy_world(World* world);
 
-// NOTE: THere is only one instance of a ConvexShapeConfig available right now.
+// NOTE: There is only one instance of a ConvexShapeConfig available right now.
 FFI_PLUGIN_EXPORT ConvexShapeConfig* get_convex_shape_config();
 
 FFI_PLUGIN_EXPORT CollisionShape* create_convex_shape(ConvexShapeConfig* config, float* points, int num_points);
 
-// NOTE: THere is only one instance of a CompoundShapeConfig available right now.
+// NOTE: There is only one instance of a CompoundShapeConfig available right now.
 FFI_PLUGIN_EXPORT CompoundShapeConfig* get_compound_shape_config();
 
-FFI_PLUGIN_EXPORT CollisionShape* create_compound_shape(CompoundShapeConfig* conifg);
+FFI_PLUGIN_EXPORT CollisionShape* create_compound_shape(CompoundShapeConfig* config);
+
+FFI_PLUGIN_EXPORT CollisionShape* create_mesh_shape(float* vertices, int num_vertices, uint32_t* triangles, int num_triangles);
 
 FFI_PLUGIN_EXPORT void shape_set_dart_owner(CollisionShape* shape, Dart_Handle owner);
 

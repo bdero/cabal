@@ -142,13 +142,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_bullet:
-    dependency: "direct main"
-    description:
-      path: "deps/flutter_bullet"
-      relative: true
-    source: path
-    version: "0.0.1"
   flutter_gpu:
     dependency: "direct main"
     description:

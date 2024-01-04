@@ -223,3 +223,35 @@ class CompoundShape extends Shape {
     return CompoundShape._(nativeShape);
   }
 }
+
+final emptyUint32List = Uint32List(0);
+
+class MeshShapeSettings {
+  Float32List vertices;
+  Uint32List indices;
+
+  MeshShapeSettings(this.vertices, this.indices) {
+    assert(vertices.length % 3 == 0);
+    assert(indices.length % 3 == 0);
+  }
+}
+
+class MeshShape extends Shape {
+  MeshShape._(ffi.Pointer<jolt.CollisionShape> nativeShape)
+      : super._(nativeShape);
+
+  static final unwrappedCreateMeshShape = jolt.dylib.lookupFunction<
+      ffi.Pointer<jolt.CollisionShape> Function(
+          ffi.Pointer<ffi.Float>, ffi.Int, ffi.Pointer<ffi.Uint32>, ffi.Int),
+      ffi.Pointer<jolt.CollisionShape> Function(Float32List, int, Uint32List,
+          int)>('create_mesh_shape', isLeaf: true);
+
+  factory MeshShape(MeshShapeSettings settings) {
+    final nativeShape = unwrappedCreateMeshShape(
+        settings.vertices,
+        settings.vertices.length ~/ 3,
+        settings.indices,
+        settings.indices.length ~/ 3);
+    return MeshShape._(nativeShape);
+  }
+}
