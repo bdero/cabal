@@ -593,37 +593,6 @@ class Jolt {
       ffi.Pointer<CollisionShape> Function(
           ffi.Pointer<ffi.Float>, int, ffi.Pointer<ffi.Uint32>, int)>();
 
-  void shape_set_dart_owner(
-    ffi.Pointer<CollisionShape> shape,
-    Object owner,
-  ) {
-    return _shape_set_dart_owner(
-      shape,
-      owner,
-    );
-  }
-
-  late final _shape_set_dart_ownerPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Void Function(ffi.Pointer<CollisionShape>,
-              ffi.Handle)>>('shape_set_dart_owner');
-  late final _shape_set_dart_owner = _shape_set_dart_ownerPtr
-      .asFunction<void Function(ffi.Pointer<CollisionShape>, Object)>();
-
-  Object shape_get_dart_owner(
-    ffi.Pointer<CollisionShape> shape,
-  ) {
-    return _shape_get_dart_owner(
-      shape,
-    );
-  }
-
-  late final _shape_get_dart_ownerPtr = _lookup<
-          ffi.NativeFunction<ffi.Handle Function(ffi.Pointer<CollisionShape>)>>(
-      'shape_get_dart_owner');
-  late final _shape_get_dart_owner = _shape_get_dart_ownerPtr
-      .asFunction<Object Function(ffi.Pointer<CollisionShape>)>();
-
   void shape_get_center_of_mass(
     ffi.Pointer<CollisionShape> shape,
     ffi.Pointer<ffi.Float> v3,
@@ -661,6 +630,37 @@ class Jolt {
   late final _shape_get_local_bounds = _shape_get_local_boundsPtr.asFunction<
       void Function(ffi.Pointer<CollisionShape>, ffi.Pointer<ffi.Float>,
           ffi.Pointer<ffi.Float>)>();
+
+  void shape_set_dart_owner(
+    ffi.Pointer<CollisionShape> shape,
+    Object owner,
+  ) {
+    return _shape_set_dart_owner(
+      shape,
+      owner,
+    );
+  }
+
+  late final _shape_set_dart_ownerPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<CollisionShape>,
+              ffi.Handle)>>('shape_set_dart_owner');
+  late final _shape_set_dart_owner = _shape_set_dart_ownerPtr
+      .asFunction<void Function(ffi.Pointer<CollisionShape>, Object)>();
+
+  Object shape_get_dart_owner(
+    ffi.Pointer<CollisionShape> shape,
+  ) {
+    return _shape_get_dart_owner(
+      shape,
+    );
+  }
+
+  late final _shape_get_dart_ownerPtr = _lookup<
+          ffi.NativeFunction<ffi.Handle Function(ffi.Pointer<CollisionShape>)>>(
+      'shape_get_dart_owner');
+  late final _shape_get_dart_owner = _shape_get_dart_ownerPtr
+      .asFunction<Object Function(ffi.Pointer<CollisionShape>)>();
 
   void destroy_shape(
     ffi.Pointer<CollisionShape> shape,
@@ -815,6 +815,37 @@ class Jolt {
           'body_get_active');
   late final _body_get_active = _body_get_activePtr
       .asFunction<bool Function(ffi.Pointer<WorldBody>)>(isLeaf: true);
+
+  void set_body_dart_owner(
+    ffi.Pointer<WorldBody> body,
+    Object owner,
+  ) {
+    return _set_body_dart_owner(
+      body,
+      owner,
+    );
+  }
+
+  late final _set_body_dart_ownerPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Pointer<WorldBody>, ffi.Handle)>>('set_body_dart_owner');
+  late final _set_body_dart_owner = _set_body_dart_ownerPtr
+      .asFunction<void Function(ffi.Pointer<WorldBody>, Object)>();
+
+  Object get_body_dart_owner(
+    ffi.Pointer<WorldBody> body,
+  ) {
+    return _get_body_dart_owner(
+      body,
+    );
+  }
+
+  late final _get_body_dart_ownerPtr =
+      _lookup<ffi.NativeFunction<ffi.Handle Function(ffi.Pointer<WorldBody>)>>(
+          'get_body_dart_owner');
+  late final _get_body_dart_owner = _get_body_dart_ownerPtr
+      .asFunction<Object Function(ffi.Pointer<WorldBody>)>();
 
   void destroy_body(
     ffi.Pointer<WorldBody> body,
@@ -971,13 +1002,6 @@ class _SymbolAddresses {
       _library._create_mesh_shapePtr;
   ffi.Pointer<
           ffi.NativeFunction<
-              ffi.Void Function(ffi.Pointer<CollisionShape>, ffi.Handle)>>
-      get shape_set_dart_owner => _library._shape_set_dart_ownerPtr;
-  ffi.Pointer<
-          ffi.NativeFunction<ffi.Handle Function(ffi.Pointer<CollisionShape>)>>
-      get shape_get_dart_owner => _library._shape_get_dart_ownerPtr;
-  ffi.Pointer<
-          ffi.NativeFunction<
               ffi.Void Function(
                   ffi.Pointer<CollisionShape>, ffi.Pointer<ffi.Float>)>>
       get shape_get_center_of_mass => _library._shape_get_center_of_massPtr;
@@ -986,6 +1010,13 @@ class _SymbolAddresses {
           ffi.Void Function(ffi.Pointer<CollisionShape>, ffi.Pointer<ffi.Float>,
               ffi.Pointer<ffi.Float>)>> get shape_get_local_bounds =>
       _library._shape_get_local_boundsPtr;
+  ffi.Pointer<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Pointer<CollisionShape>, ffi.Handle)>>
+      get shape_set_dart_owner => _library._shape_set_dart_ownerPtr;
+  ffi.Pointer<
+          ffi.NativeFunction<ffi.Handle Function(ffi.Pointer<CollisionShape>)>>
+      get shape_get_dart_owner => _library._shape_get_dart_ownerPtr;
   ffi.Pointer<
           ffi.NativeFunction<ffi.Void Function(ffi.Pointer<CollisionShape>)>>
       get destroy_shape => _library._destroy_shapePtr;
@@ -1025,6 +1056,12 @@ class _SymbolAddresses {
       get body_set_active => _library._body_set_activePtr;
   ffi.Pointer<ffi.NativeFunction<ffi.Bool Function(ffi.Pointer<WorldBody>)>>
       get body_get_active => _library._body_get_activePtr;
+  ffi.Pointer<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Pointer<WorldBody>, ffi.Handle)>>
+      get set_body_dart_owner => _library._set_body_dart_ownerPtr;
+  ffi.Pointer<ffi.NativeFunction<ffi.Handle Function(ffi.Pointer<WorldBody>)>>
+      get get_body_dart_owner => _library._get_body_dart_ownerPtr;
   ffi.Pointer<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<WorldBody>)>>
       get destroy_body => _library._destroy_bodyPtr;
 }

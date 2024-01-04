@@ -172,6 +172,8 @@ class Body implements ffi.Finalizable {
 
   Body._(this._world, this._nativeBody, this._shape) {
     _finalizer.attach(this, _nativeBody.cast(), detach: this);
+    jolt.bindings.set_body_dart_owner(_nativeBody, this);
+    assert(identical(jolt.bindings.get_body_dart_owner(_nativeBody), this));
   }
 }
 

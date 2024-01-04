@@ -104,13 +104,13 @@ FFI_PLUGIN_EXPORT CollisionShape* create_compound_shape(CompoundShapeConfig* con
 
 FFI_PLUGIN_EXPORT CollisionShape* create_mesh_shape(float* vertices, int num_vertices, uint32_t* triangles, int num_triangles);
 
-FFI_PLUGIN_EXPORT void shape_set_dart_owner(CollisionShape* shape, Dart_Handle owner);
-
-FFI_PLUGIN_EXPORT Dart_Handle shape_get_dart_owner(CollisionShape* shape);
-
 FFI_PLUGIN_EXPORT void shape_get_center_of_mass(CollisionShape* shape, float* v3);
 
 FFI_PLUGIN_EXPORT void shape_get_local_bounds(CollisionShape* shape, float* min3, float* max3);
+
+FFI_PLUGIN_EXPORT void shape_set_dart_owner(CollisionShape* shape, Dart_Handle owner);
+
+FFI_PLUGIN_EXPORT Dart_Handle shape_get_dart_owner(CollisionShape* shape);
 
 FFI_PLUGIN_EXPORT void destroy_shape(CollisionShape* shape);
 
@@ -130,6 +130,10 @@ FFI_PLUGIN_EXPORT void body_get_com_matrix(WorldBody* body, float* m16);
 FFI_PLUGIN_EXPORT void body_set_active(WorldBody* body, bool activate);
 
 FFI_PLUGIN_EXPORT bool body_get_active(WorldBody* body);
+
+FFI_PLUGIN_EXPORT void set_body_dart_owner(WorldBody* body, Dart_Handle owner);
+
+FFI_PLUGIN_EXPORT Dart_Handle get_body_dart_owner(WorldBody* body);
 
 FFI_PLUGIN_EXPORT void destroy_body(WorldBody* body);
 

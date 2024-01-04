@@ -99,6 +99,10 @@ public:
 
   PhysicsSystem &physics_system() { return *physics_system_; }
 
+  Dart_Handle GetDartOwnerForBody(const BodyID& id) {
+    return reinterpret_cast<Dart_Handle>(body_interface().GetUserData(id));
+  }
+
   BodyInterface &body_interface() {
     return physics_system_->GetBodyInterface();
   }
@@ -149,23 +153,24 @@ public:
   }
 
   ~CollisionShape() {
-    Dart_DeleteWeakPersistentHandle_DL(owner_);
+    if (shape_ != nullptr) {
+      Dart_DeleteWeakPersistentHandle_DL(reinterpret_cast<Dart_WeakPersistentHandle>(shape_->GetUserData()));
+    }
   }
 
   static void SetDartOwner(CollisionShape *shape, Dart_Handle owner) {
-    shape->owner_ =
-        Dart_NewWeakPersistentHandle_DL(owner, nullptr, 0, NoopFinalizer);
+    shape->shape_->SetUserData(reinterpret_cast<int64_t>(
+        Dart_NewWeakPersistentHandle_DL(owner, nullptr, 0, NoopFinalizer)));
   }
 
   static Dart_Handle GetDartOwner(CollisionShape *shape) {
-    return Dart_HandleFromWeakPersistent_DL(shape->owner_);
+    return Dart_HandleFromWeakPersistent_DL(reinterpret_cast<Dart_WeakPersistentHandle>(shape->shape_->GetUserData()));
   }
 
   Shape *shape() { return shape_; }
 
 private:
   Ref<Shape> shape_;
-  Dart_WeakPersistentHandle owner_;
 };
 
 class WorldBody {
@@ -180,12 +185,12 @@ public:
   }
 
   static void SetDartOwner(WorldBody *body, Dart_Handle owner) {
-    body->owner_ =
-        Dart_NewWeakPersistentHandle_DL(owner, nullptr, 0, NoopFinalizer);
+    body->body_->SetUserData(reinterpret_cast<int64_t>(
+        Dart_NewWeakPersistentHandle_DL(owner, nullptr, 0, NoopFinalizer)));
   }
 
   static Dart_Handle GetDartOwner(WorldBody *body) {
-    return Dart_HandleFromWeakPersistent_DL(body->owner_);
+    return Dart_HandleFromWeakPersistent_DL(reinterpret_cast<Dart_WeakPersistentHandle>(body->body_->GetUserData()));
   }
 
   World *world() { return world_; }
@@ -402,10 +407,6 @@ FFI_PLUGIN_EXPORT WorldBody *world_create_body(World *world,
   return new WorldBody(world, body);
 }
 
-FFI_PLUGIN_EXPORT void set_owner_body(WorldBody *body, Dart_Handle owner) {
-  WorldBody::SetDartOwner(body, owner);
-}
-
 FFI_PLUGIN_EXPORT void body_set_position(WorldBody *body, float *v4) {
   body->SetPosition(v4);
 }
@@ -443,3 +444,11 @@ FFI_PLUGIN_EXPORT bool body_get_active(WorldBody* body) {
 }
 
 FFI_PLUGIN_EXPORT void destroy_body(WorldBody *body) { delete body; }
+
+FFI_PLUGIN_EXPORT void set_body_dart_owner(WorldBody* body, Dart_Handle owner) {
+  WorldBody::SetDartOwner(body, owner);
+}
+
+FFI_PLUGIN_EXPORT Dart_Handle get_body_dart_owner(WorldBody* body) {
+  return WorldBody::GetDartOwner(body);
+}

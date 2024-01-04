@@ -9,6 +9,7 @@ class Shape implements ffi.Finalizable {
   Shape._(this._nativeShape) {
     _finalizer.attach(this, _nativeShape.cast(), detach: this);
     jolt.bindings.shape_set_dart_owner(_nativeShape, this);
+    assert(identical(jolt.bindings.shape_get_dart_owner(_nativeShape), this));
   }
 
   static final unwrappedGetCenterOfMass = jolt.dylib.lookupFunction<
