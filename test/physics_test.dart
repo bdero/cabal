@@ -169,4 +169,50 @@ main() {
     });
     expect(count, equals(1));
   });
+
+  test('scaled shape', () {
+    var unitCube = BoxShape(BoxShapeSettings(Vector3(0.5, 0.5, 0.5)));
+    var scaledCube =
+        ScaledShape(ScaledShapeSettings(unitCube, Vector3(4, 4, 4)));
+    expect(scaledCube.localBounds.min, equals(Vector3(-2, -2, -2)));
+    expect(scaledCube.localBounds.max, equals(Vector3(2, 2, 2)));
+    var box = world.createRigidBody(BodySettings(scaledCube)
+      ..position = Vector3(0, 8, 0)
+      ..motionType = MotionType.dynamic);
+    world.addBody(box);
+    final plane = BoxShape(BoxShapeSettings(Vector3(100, 1, 100)));
+    final ground = world.createRigidBody(BodySettings(plane)
+      ..position = Vector3(0.0, -1.0, 0)
+      ..motionType = MotionType.static);
+    world.addBody(ground);
+
+    while (box.active) {
+      world.step(dt);
+    }
+
+    // Box has center near 2.0.
+    expect(2.0 - box.position.y, lessThan(0.03));
+  });
+
+  test('transformed shape', () {
+    var unitCube = BoxShape(BoxShapeSettings(Vector3(0.5, 0.5, 0.5)));
+    var transformedCube = TransformedShape(TransformedShapeSettings(unitCube,
+        Vector3(0, 0, 0), Quaternion.axisAngle(Vector3(0, 1, 0), pi * 0.25)));
+    final minX = transformedCube.localBounds.min.x;
+    final maxX = transformedCube.localBounds.max.x;
+    // Rotated around the Y axis so the Y bounds don't change.
+    expect(transformedCube.localBounds.min.y, equals(-0.5));
+    expect(transformedCube.localBounds.max.y, equals(0.5));
+    // Shape is symmetric so the z == x after rotation.
+    expect(transformedCube.localBounds.min.z, equals(minX));
+    expect(transformedCube.localBounds.max.z, equals(maxX));
+  });
+
+  test('offset center of mass shape', () {
+    var unitCube = BoxShape(BoxShapeSettings(Vector3(0.5, 0.5, 0.5)));
+    var offsetCube = OffsetCenterOfMassShape(
+        OffsetCenterOfMassShapeSettings(unitCube, Vector3(0, 1, 0)));
+    expect(offsetCube.localBounds.min, equals(Vector3(-0.5, -1.5, -0.5)));
+    expect(offsetCube.localBounds.max, equals(Vector3(0.5, -0.5, 0.5)));
+  });
 }

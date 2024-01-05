@@ -44,7 +44,7 @@ struct BodyConfig {
 };
 
 enum ConvexShapeConfigType {
-  kUnknown,
+  kUnknownConvexShape,
   kBox,
   kSphere,
   kCapsule,
@@ -52,7 +52,7 @@ enum ConvexShapeConfigType {
 };
 
 struct ConvexShapeConfig {
-  ConvexShapeConfigType type = kUnknown;
+  ConvexShapeConfigType type = kUnknownConvexShape;
   float density = 0.0;
   // kBox:
   // payload is the half extents.
@@ -63,6 +63,20 @@ struct ConvexShapeConfig {
   // kConvexHull:
   // payload is not used.
   float payload[3];
+};
+
+enum DecoratedShapeConfigType {
+  kUnknownDecoratedShape,
+  kScaled,
+  kTransformed,
+  kOffsetCenterOfMass,
+};
+
+struct DecoratedShapeConfig {
+  DecoratedShapeConfigType type = kUnknownDecoratedShape;
+  CollisionShape* inner_shape;
+  float v3[3];
+  float q4[4];
 };
 
 struct CompoundShapeConfig {
@@ -102,6 +116,8 @@ FFI_PLUGIN_EXPORT CollisionShape* create_convex_shape(ConvexShapeConfig* config,
 FFI_PLUGIN_EXPORT CollisionShape* create_compound_shape(CompoundShapeConfig* shapes, int num_shapes);
 
 FFI_PLUGIN_EXPORT CollisionShape* create_mesh_shape(float* vertices, int num_vertices, uint32_t* triangles, int num_triangles);
+
+FFI_PLUGIN_EXPORT CollisionShape* create_decorated_shape(DecoratedShapeConfig* config);
 
 FFI_PLUGIN_EXPORT void shape_get_center_of_mass(CollisionShape* shape, float* v3);
 

@@ -603,6 +603,22 @@ class Jolt {
       ffi.Pointer<CollisionShape> Function(
           ffi.Pointer<ffi.Float>, int, ffi.Pointer<ffi.Uint32>, int)>();
 
+  ffi.Pointer<CollisionShape> create_decorated_shape(
+    ffi.Pointer<DecoratedShapeConfig> config,
+  ) {
+    return _create_decorated_shape(
+      config,
+    );
+  }
+
+  late final _create_decorated_shapePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<CollisionShape> Function(
+              ffi.Pointer<DecoratedShapeConfig>)>>('create_decorated_shape');
+  late final _create_decorated_shape = _create_decorated_shapePtr.asFunction<
+      ffi.Pointer<CollisionShape> Function(
+          ffi.Pointer<DecoratedShapeConfig>)>();
+
   void shape_get_center_of_mass(
     ffi.Pointer<CollisionShape> shape,
     ffi.Pointer<ffi.Float> v3,
@@ -1011,6 +1027,11 @@ class _SymbolAddresses {
               ffi.Pointer<ffi.Uint32>,
               ffi.Int)>> get create_mesh_shape =>
       _library._create_mesh_shapePtr;
+  ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Pointer<CollisionShape> Function(
+              ffi.Pointer<DecoratedShapeConfig>)>> get create_decorated_shape =>
+      _library._create_decorated_shapePtr;
   ffi.Pointer<
           ffi.NativeFunction<
               ffi.Void Function(
@@ -1545,7 +1566,7 @@ final class BodyConfig extends ffi.Struct {
 }
 
 abstract class ConvexShapeConfigType {
-  static const int kUnknown = 0;
+  static const int kUnknownConvexShape = 0;
   static const int kBox = 1;
   static const int kSphere = 2;
   static const int kCapsule = 3;
@@ -1569,6 +1590,26 @@ final class ConvexShapeConfig extends ffi.Struct {
   /// payload is not used.
   @ffi.Array.multi([3])
   external ffi.Array<ffi.Float> payload;
+}
+
+abstract class DecoratedShapeConfigType {
+  static const int kUnknownDecoratedShape = 0;
+  static const int kScaled = 1;
+  static const int kTransformed = 2;
+  static const int kOffsetCenterOfMass = 3;
+}
+
+final class DecoratedShapeConfig extends ffi.Struct {
+  @ffi.Int32()
+  external int type;
+
+  external ffi.Pointer<CollisionShape> inner_shape;
+
+  @ffi.Array.multi([3])
+  external ffi.Array<ffi.Float> v3;
+
+  @ffi.Array.multi([4])
+  external ffi.Array<ffi.Float> q4;
 }
 
 final class CompoundShapeConfig extends ffi.Struct {

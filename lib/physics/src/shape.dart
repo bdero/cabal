@@ -1,5 +1,11 @@
 part of '../physics.dart';
 
+// TODO:
+// - MutableCompoundShape.
+// - HeightFieldShape.
+// - Serialization.
+// - Baked serialization.
+
 class Shape implements ffi.Finalizable {
   static final _finalizer =
       ffi.NativeFinalizer(jolt.bindings.addresses.destroy_shape.cast());
@@ -272,5 +278,112 @@ class MeshShape extends Shape {
         settings.indices,
         settings.indices.length ~/ 3);
     return MeshShape._(nativeShape);
+  }
+}
+
+class DecoratedShapeSettings {
+  DecoratedShapeSettings(this.innerShape);
+
+  Shape innerShape;
+
+  _copyToDecoratedShapeConfig(ffi.Pointer<jolt.DecoratedShapeConfig> config) {
+    config.ref.inner_shape = innerShape._nativeShape;
+  }
+}
+
+class DecoratedShape extends Shape {
+  DecoratedShape._(ffi.Pointer<jolt.CollisionShape> nativeShape)
+      : super._(nativeShape);
+}
+
+class ScaledShapeSettings extends DecoratedShapeSettings {
+  ScaledShapeSettings(Shape innerShape, this.scale) : super(innerShape);
+
+  Vector3 scale;
+  @override
+  _copyToDecoratedShapeConfig(ffi.Pointer<jolt.DecoratedShapeConfig> config) {
+    super._copyToDecoratedShapeConfig(config);
+    config.ref.type = jolt.DecoratedShapeConfigType.kScaled;
+    config.ref.v3[0] = scale[0];
+    config.ref.v3[1] = scale[1];
+    config.ref.v3[2] = scale[2];
+  }
+}
+
+class ScaledShape extends DecoratedShape {
+  ScaledShape._(ffi.Pointer<jolt.CollisionShape> nativeShape)
+      : super._(nativeShape);
+
+  factory ScaledShape(ScaledShapeSettings settings) {
+    ffi.Pointer<jolt.DecoratedShapeConfig> config =
+        calloc.allocate(ffi.sizeOf<jolt.DecoratedShapeConfig>());
+    settings._copyToDecoratedShapeConfig(config);
+    final nativeShape = jolt.bindings.create_decorated_shape(config);
+    calloc.free(config);
+    return ScaledShape._(nativeShape);
+  }
+}
+
+class TransformedShapeSettings extends DecoratedShapeSettings {
+  TransformedShapeSettings(Shape innerShape, this.position, this.rotation)
+      : super(innerShape);
+
+  Vector3 position;
+  Quaternion rotation;
+
+  @override
+  _copyToDecoratedShapeConfig(ffi.Pointer<jolt.DecoratedShapeConfig> config) {
+    super._copyToDecoratedShapeConfig(config);
+    config.ref.type = jolt.DecoratedShapeConfigType.kTransformed;
+    config.ref.v3[0] = position[0];
+    config.ref.v3[1] = position[1];
+    config.ref.v3[2] = position[2];
+    config.ref.q4[0] = rotation[0];
+    config.ref.q4[1] = rotation[1];
+    config.ref.q4[2] = rotation[2];
+    config.ref.q4[3] = rotation[3];
+  }
+}
+
+class TransformedShape extends DecoratedShape {
+  TransformedShape._(ffi.Pointer<jolt.CollisionShape> nativeShape)
+      : super._(nativeShape);
+
+  factory TransformedShape(TransformedShapeSettings settings) {
+    ffi.Pointer<jolt.DecoratedShapeConfig> config =
+        calloc.allocate(ffi.sizeOf<jolt.DecoratedShapeConfig>());
+    settings._copyToDecoratedShapeConfig(config);
+    final nativeShape = jolt.bindings.create_decorated_shape(config);
+    calloc.free(config);
+    return TransformedShape._(nativeShape);
+  }
+}
+
+class OffsetCenterOfMassShapeSettings extends DecoratedShapeSettings {
+  OffsetCenterOfMassShapeSettings(super.innerShape, this.offset);
+
+  Vector3 offset;
+
+  @override
+  _copyToDecoratedShapeConfig(ffi.Pointer<jolt.DecoratedShapeConfig> config) {
+    super._copyToDecoratedShapeConfig(config);
+    config.ref.type = jolt.DecoratedShapeConfigType.kOffsetCenterOfMass;
+    config.ref.v3[0] = offset[0];
+    config.ref.v3[1] = offset[1];
+    config.ref.v3[2] = offset[2];
+  }
+}
+
+class OffsetCenterOfMassShape extends DecoratedShape {
+  OffsetCenterOfMassShape._(ffi.Pointer<jolt.CollisionShape> nativeShape)
+      : super._(nativeShape);
+
+  factory OffsetCenterOfMassShape(OffsetCenterOfMassShapeSettings settings) {
+    ffi.Pointer<jolt.DecoratedShapeConfig> config =
+        calloc.allocate(ffi.sizeOf<jolt.DecoratedShapeConfig>());
+    settings._copyToDecoratedShapeConfig(config);
+    final nativeShape = jolt.bindings.create_decorated_shape(config);
+    calloc.free(config);
+    return OffsetCenterOfMassShape._(nativeShape);
   }
 }

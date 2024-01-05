@@ -26,6 +26,9 @@
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
+#include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
+#include <Jolt/Physics/Collision/Shape/OffsetCenterOfMassShape.h>
 #include <Jolt/Physics/Collision/Shape/TaperedCapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
 #include <Jolt/Physics/Collision/Shape/MeshShape.h>
@@ -326,6 +329,41 @@ void assert_shape_result(const char* kind, const JPH::ShapeSettings::ShapeResult
   assert(!result.HasError());
 }
 
+FFI_PLUGIN_EXPORT CollisionShape* create_decorated_shape(DecoratedShapeConfig* config) {
+ switch (config->type) {
+  case kScaled: {
+    ScaledShapeSettings settings;
+    settings.mInnerShapePtr = config->inner_shape->shape();
+    settings.mScale.Set(config->v3[0], config->v3[1], config->v3[2]);
+    auto result = settings.Create();
+    assert_shape_result("scaled", result);
+    return new CollisionShape(result.Get());
+  }
+  case kTransformed: {
+    RotatedTranslatedShapeSettings settings;
+    settings.mInnerShapePtr = config->inner_shape->shape();
+    settings.mPosition.Set(config->v3[0], config->v3[1], config->v3[2]);
+    settings.mRotation.Set(config->q4[0], config->q4[1], config->q4[2], config->q4[3]);
+    auto result = settings.Create();
+    assert_shape_result("transformed", result);
+    return new CollisionShape(result.Get());
+  }
+  case kOffsetCenterOfMass: {
+    OffsetCenterOfMassShapeSettings settings;
+    settings.mInnerShapePtr = config->inner_shape->shape();
+    settings.mOffset.Set(config->v3[0], config->v3[1], config->v3[2]);
+    auto result = settings.Create();
+    assert_shape_result("offset", result);
+    return new CollisionShape(result.Get());
+  }
+  default: {
+        fprintf(stderr, "Unknown DecoratedShapeConfigType: %d\n", config->type);
+      assert(false);
+      return nullptr;
+  }
+ }
+}
+
 FFI_PLUGIN_EXPORT CollisionShape* create_mesh_shape(float* vertices, int num_vertices, uint32_t* triangles, int num_triangles) {
   MeshShapeSettings settings;
   settings.mTriangleVertices.reserve(num_vertices);
@@ -395,7 +433,7 @@ FFI_PLUGIN_EXPORT CollisionShape* create_convex_shape(ConvexShapeConfig* config,
       return new CollisionShape(result.Get());
       break;
     }
-    case kUnknown:
+    case kUnknownConvexShape:
     default: {
       fprintf(stderr, "Unknown ConvexShapeConfigType: %d\n", config->type);
       assert(false);

@@ -133,12 +133,11 @@ class Body implements ffi.Finalizable {
 
   set shape(Shape shape) {
     _shape = shape;
-    // Call to set.
+    // TODO(johnmccutchan): Call to set.
   }
 
   Shape get shape {
     return _shape;
-    // Call to set.
   }
 
   MotionQuality get motionQuality {
@@ -147,7 +146,7 @@ class Body implements ffi.Finalizable {
 
   set motionQuality(MotionQuality mq) {
     _motionQuality = mq;
-    // Call to set.
+    // TODO(johnmccutchan): Call to set.
   }
 
   MotionType get motionType {
@@ -156,7 +155,7 @@ class Body implements ffi.Finalizable {
 
   set motionType(MotionType mt) {
     _motionType = mt;
-    // Call to set.
+    // TODO(johnmccutchan): Call to set.
   }
 
   // Returns true if the body is active in the simulation.
