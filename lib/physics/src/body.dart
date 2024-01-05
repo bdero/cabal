@@ -1,5 +1,9 @@
 part of '../physics.dart';
 
+// TODO(johnmccutchan):
+// - Implement missing native callbacks.
+// - Expand exposed API.
+
 enum MotionType {
   // Non movable.
   static,

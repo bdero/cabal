@@ -5,6 +5,7 @@ part of '../physics.dart';
 // - HeightFieldShape.
 // - Serialization.
 // - Baked serialization.
+// - plumb support for subshapeid.
 
 class Shape implements ffi.Finalizable {
   static final _finalizer =

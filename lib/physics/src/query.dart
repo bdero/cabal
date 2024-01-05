@@ -1,5 +1,11 @@
 part of '../physics.dart';
 
+// TODO(johnmccutchan):
+// - shapeCast.
+// - collideShape.
+// - collidePoint.
+// - plumb support for subshapeid.
+
 final class RayHit {
   // Body that was hit by the ray.
   final Body body;
