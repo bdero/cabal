@@ -16,6 +16,7 @@ dependencies:
   vector_math: ^2.1.4
   ffi:
   oxygen: ^0.2.0
+  flutter_fancy_tree_view:
 
 dev_dependencies:
   flutter_test:
