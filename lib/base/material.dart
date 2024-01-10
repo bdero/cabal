@@ -38,7 +38,7 @@ abstract class Material {
         gpu.gpuContext.createRenderPipeline(_vertexShader, _fragmentShader);
     pass.bindPipeline(_pipeline!);
 
-    final mvpSlot = _vertexShader.getUniformSlot('mvp')!;
+    final mvpSlot = _vertexShader.getUniformSlot('VertexInfo');
     final mvpView = transientsBuffer.emplace(mvp.storage.buffer.asByteData());
     pass.bindUniform(mvpSlot, mvpView);
   }
@@ -59,7 +59,7 @@ class UnlitMaterial extends Material {
   @override
   void bind(
       gpu.RenderPass pass, gpu.HostBuffer transientsBuffer, vm.Matrix4 mvp) {
-    pass.bindTexture(_fragmentShader.getUniformSlot('tex')!, _color!);
+    pass.bindTexture(_fragmentShader.getUniformSlot('tex'), _color!);
     super.bind(pass, transientsBuffer, mvp);
   }
 }

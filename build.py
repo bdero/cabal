@@ -115,7 +115,6 @@ def build_shader_bundle(bundle_name, shaders):
   data_json = data_json.replace('"', '\\"').replace('{', '\{').replace('}', '\}').replace(' ', '\ ')
   command = ' '.join([impellerc_path,
                    '--include=%s/flutter/impeller/compiler/shader_lib' % engine_src_directory,
-                   '--runtime-stage-metal',
                    '--sl=%s/%s.shaderbundle' % (gen_directory, bundle_name),
                    '--shader-bundle=%s' % data_json,
                    ])
