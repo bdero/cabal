@@ -26,7 +26,7 @@ else:
 
 engine_out_directory = os.environ.get('ENGINE_OUT_DIR')
 if engine_out_directory == None:
-  engine_out_directory = 'out/host_debug_unopt'
+  engine_out_directory = 'out/host_debug_unopt_arm64'
   print('no ENGINE_OUT_DIR environment variable set, defaulting to: %s' % engine_out_directory)
 else:
   print('ENGINE_OUT_DIR=%s' % engine_out_directory)
@@ -55,7 +55,7 @@ def inputs_newer(inputs, output):
     output_mtime = os.path.getmtime(output_path)
   except OSError as e:
     output_mtime = 0
-  
+
   for input in inputs:
     input_path = os.path.join(script_directory, input)
     input_mtime = 0
@@ -67,7 +67,7 @@ def inputs_newer(inputs, output):
     if input_mtime > output_mtime:
       return True
   return False
-  
+
 def generate_ffi(config_file, inputs, output_file):
   inputs.append(config_file)
   if inputs_newer(inputs, output_file) == False:
@@ -119,7 +119,7 @@ def build_shader_bundle(bundle_name, shaders):
                    '--shader-bundle=%s' % data_json,
                    ])
   subprocess.call(command, shell=True)
-  
+
 def build_cabal(argv):
   build_cmake('plugins/ffi/jolt')
   build_cmake('plugins/ffi/v-hacd')
