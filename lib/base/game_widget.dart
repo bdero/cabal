@@ -61,6 +61,7 @@ class GameRenderObjectWidget extends LeafRenderObjectWidget {
 
   @override
   RenderObject createRenderObject(BuildContext context) {
+    print('createRenderObject');
     Game game = gameFactory()..initCallbacks(overlayCallback);
 
     return RenderConstrainedBox(
