@@ -70,7 +70,7 @@ class RenderSystem extends oxy.System {
     /// Record all of the drawing commands.
     ///
 
-    final transientsBuffer = gpu.HostBuffer(gpu.gpuContext);
+    final transientsBuffer = gpu.gpuContext.createHostBuffer();
 
     // When a RigidBody is attached, drive the Entity's transform.
     for (final entity in meshQuery.entities) {
