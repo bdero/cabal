@@ -31,7 +31,7 @@ extern "C" {
 
 // NOTE: All vertex data is encoded as 3 floats, packed x, y, z.
 // NOTE: All triangle data is encoded as 3 uint32_ts, packed i0, i1, i2.
-struct ConvexHull {
+typedef struct ConvexHull {
   // Index in the decomposition.
   int index;
   // Center of the convex hull.
@@ -52,7 +52,7 @@ struct ConvexHull {
 
   // Volume of the convex hull.
   double volume;
-};
+} ConvexHull;
 
 typedef class_type ConvexHullResult ConvexHullResult;
 

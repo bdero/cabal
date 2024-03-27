@@ -33,7 +33,7 @@ typedef class_type CollisionShape CollisionShape;
 typedef class_type WorldBody WorldBody;
 
 // Configuration for a body when it si created.
-struct BodyConfig {
+typedef struct BodyConfig {
   CollisionShape* shape;
   float position[4];
   float rotation[4];
@@ -41,17 +41,17 @@ struct BodyConfig {
   float angular_velocity[4];
   int motion_type;
   int motion_quality;
-};
+} BodyConfig;
 
-enum ConvexShapeConfigType {
+typedef enum ConvexShapeConfigType {
   kUnknownConvexShape,
   kBox,
   kSphere,
   kCapsule,
   kConvexHull,
-};
+} ConvexShapeConfigType;
 
-struct ConvexShapeConfig {
+typedef struct ConvexShapeConfig {
   ConvexShapeConfigType type = kUnknownConvexShape;
   float density = 0.0;
   // kBox:
@@ -63,33 +63,33 @@ struct ConvexShapeConfig {
   // kConvexHull:
   // payload is not used.
   float payload[3];
-};
+} ConvexShapeConfig;
 
-enum DecoratedShapeConfigType {
+typedef enum DecoratedShapeConfigType {
   kUnknownDecoratedShape,
   kScaled,
   kTransformed,
   kOffsetCenterOfMass,
-};
+} DecoratedShapeConfigType;
 
-struct DecoratedShapeConfig {
-  DecoratedShapeConfigType type = kUnknownDecoratedShape;
+typedef struct DecoratedShapeConfig {
+  enum DecoratedShapeConfigType type = kUnknownDecoratedShape;
   CollisionShape* inner_shape;
   float v3[3];
   float q4[4];
-};
+} DecoratedShapeConfig;
 
-struct CompoundShapeConfig {
+typedef struct CompoundShapeConfig {
   CollisionShape* shape;
   float position[3];
   float rotation[4];
-};
+} CompoundShapeConfig;
 
-struct RayCastConfig {
+typedef struct RayCastConfig {
   float start[3];
   float end[3];
   float (*cb)(Dart_Handle body, float fraction, const float* n);
-};
+} RayCastConfig;
 
 FFI_PLUGIN_EXPORT uint8_t* native_malloc(int byte_size);
 

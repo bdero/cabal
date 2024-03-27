@@ -70,11 +70,11 @@ def inputs_newer(inputs, output):
 
 def generate_ffi(config_file, inputs, output_file):
   inputs.append(config_file)
-  if inputs_newer(inputs, output_file) == False:
-    print('skipping ffigen for %s' % config_file)
-    return
+  #if inputs_newer(inputs, output_file) == False:
+  #  print('skipping ffigen for %s' % config_file)
+  #  return
   config_path = os.path.join(script_directory, config_file)
-  subprocess.call('dart run ffigen --config %s' % config_path, shell=True, stderr=sys.stderr, stdout=sys.stdout)
+  subprocess.call('dart run ffigen --config %s --ignore-source-errors' % config_path, shell=True, stderr=sys.stderr, stdout=sys.stdout)
 
 def generate_ffi_plugin(plugin, output):
   config_file = 'plugins/ffi/%s.ffigen.yaml' % plugin
