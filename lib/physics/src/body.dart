@@ -76,62 +76,119 @@ class Body implements ffi.Finalizable {
   final unwrappedPositionSetter = jolt.dylib.lookupFunction<
       ffi.Void Function(ffi.Pointer<jolt.WorldBody>, ffi.Pointer<ffi.Float>),
       void Function(ffi.Pointer<jolt.WorldBody>,
-          Float32List)>('body_set_position', isLeaf: true);
+          ffi.Pointer<ffi.Float>)>('body_set_position', isLeaf: true);
 
   set position(Vector3 position) {
-    unwrappedPositionSetter(_nativeBody, position.storage);
+    var p = calloc.call<ffi.Float>(3);
+    p[0] = position.x;
+    p[1] = position.y;
+    p[2] = position.z;
+    unwrappedPositionSetter(_nativeBody, p);
+    calloc.free(p);
   }
 
   static final unwrappedPositionGetter = jolt.dylib.lookupFunction<
       ffi.Void Function(ffi.Pointer<jolt.WorldBody>, ffi.Pointer<ffi.Float>),
       void Function(ffi.Pointer<jolt.WorldBody>,
-          Float32List)>('body_get_position', isLeaf: true);
+          ffi.Pointer<ffi.Float>)>('body_get_position', isLeaf: true);
 
   Vector3 get position {
-    Vector3 r = new Vector3.zero();
-    unwrappedPositionGetter(_nativeBody, r.storage);
+    Vector3 r = Vector3.zero();
+    var p = calloc.call<ffi.Float>(3);
+    unwrappedPositionGetter(_nativeBody, p);
+    r.x = p[0];
+    r.y = p[1];
+    r.z = p[2];
     return r;
   }
 
   static final unwrappedRotationSetter = jolt.dylib.lookupFunction<
       ffi.Void Function(ffi.Pointer<jolt.WorldBody>, ffi.Pointer<ffi.Float>),
       void Function(ffi.Pointer<jolt.WorldBody>,
-          Float32List)>('body_set_rotation', isLeaf: true);
+          ffi.Pointer<ffi.Float>)>('body_set_rotation', isLeaf: true);
 
   set rotation(Quaternion rotation) {
-    unwrappedRotationSetter(_nativeBody, rotation.storage);
+    var p = calloc.call<ffi.Float>(4);
+    p[0] = rotation.x;
+    p[1] = rotation.y;
+    p[2] = rotation.z;
+    p[3] = rotation.w;
+    unwrappedRotationSetter(_nativeBody, p);
+    calloc.free(p);
   }
 
   static final unwrappedRotationGetter = jolt.dylib.lookupFunction<
       ffi.Void Function(ffi.Pointer<jolt.WorldBody>, ffi.Pointer<ffi.Float>),
       void Function(ffi.Pointer<jolt.WorldBody>,
-          Float32List)>('body_get_rotation', isLeaf: true);
+          ffi.Pointer<ffi.Float>)>('body_get_rotation', isLeaf: true);
 
   Quaternion get rotation {
-    Quaternion q = new Quaternion.identity();
-    unwrappedRotationGetter(_nativeBody, q.storage);
+    Quaternion q = Quaternion.identity();
+    var p = calloc.call<ffi.Float>(4);
+    unwrappedRotationGetter(_nativeBody, p);
+    q.x = p[0];
+    q.y = p[1];
+    q.z = p[2];
+    q.w = p[3];
+    calloc.free(p);
     return q;
   }
 
   static final unwrappedWorldTransformGetter = jolt.dylib.lookupFunction<
       ffi.Void Function(ffi.Pointer<jolt.WorldBody>, ffi.Pointer<ffi.Float>),
       void Function(ffi.Pointer<jolt.WorldBody>,
-          Float32List)>('body_get_world_matrix', isLeaf: true);
+          ffi.Pointer<ffi.Float>)>('body_get_world_matrix', isLeaf: true);
 
   Matrix4 get worldTransform {
     Matrix4 m = new Matrix4.zero();
-    unwrappedWorldTransformGetter(_nativeBody, m.storage);
+    var p = calloc.call<ffi.Float>(16);
+    unwrappedWorldTransformGetter(_nativeBody, p);
+    m[0] = p[0];
+    m[1] = p[1];
+    m[2] = p[2];
+    m[3] = p[3];
+    m[4] = p[4];
+    m[5] = p[5];
+    m[6] = p[6];
+    m[7] = p[7];
+    m[8] = p[8];
+    m[9] = p[9];
+    m[10] = p[10];
+    m[11] = p[11];
+    m[12] = p[12];
+    m[13] = p[13];
+    m[14] = p[14];
+    m[15] = p[15];
+    calloc.free(p);
     return m;
   }
 
   static final unwrapperCenterOfMassTransformGetter = jolt.dylib.lookupFunction<
       ffi.Void Function(ffi.Pointer<jolt.WorldBody>, ffi.Pointer<ffi.Float>),
       void Function(ffi.Pointer<jolt.WorldBody>,
-          Float32List)>('body_get_com_matrix', isLeaf: true);
+          ffi.Pointer<ffi.Float>)>('body_get_com_matrix', isLeaf: true);
 
   Matrix4 get centerOfMassTransform {
     Matrix4 m = new Matrix4.zero();
-    unwrapperCenterOfMassTransformGetter(_nativeBody, m.storage);
+    var p = calloc.call<ffi.Float>(16);
+    unwrapperCenterOfMassTransformGetter(_nativeBody, p);
+    m[0] = p[0];
+    m[1] = p[1];
+    m[2] = p[2];
+    m[3] = p[3];
+    m[4] = p[4];
+    m[5] = p[5];
+    m[6] = p[6];
+    m[7] = p[7];
+    m[8] = p[8];
+    m[9] = p[9];
+    m[10] = p[10];
+    m[11] = p[11];
+    m[12] = p[12];
+    m[13] = p[13];
+    m[14] = p[14];
+    m[15] = p[15];
+    calloc.free(p);
     return m;
   }
 

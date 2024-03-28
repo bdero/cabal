@@ -23,23 +23,38 @@ class Shape implements ffi.Finalizable {
       ffi.Void Function(
           ffi.Pointer<jolt.CollisionShape>, ffi.Pointer<ffi.Float>),
       void Function(ffi.Pointer<jolt.CollisionShape>,
-          Float32List)>('shape_get_center_of_mass', isLeaf: true);
+          ffi.Pointer<ffi.Float>)>('shape_get_center_of_mass', isLeaf: true);
 
   Vector3 get centerOfMass {
     Vector3 r = Vector3.zero();
-    unwrappedGetCenterOfMass(_nativeShape, r.storage);
+    var p = calloc.call<ffi.Float>(3);
+    unwrappedGetCenterOfMass(_nativeShape, p);
+    r.x = p[0];
+    r.y = p[1];
+    r.z = p[2];
+    calloc.free(p);
     return r;
   }
 
   static final unwrappedGetLocalBounds = jolt.dylib.lookupFunction<
       ffi.Void Function(ffi.Pointer<jolt.CollisionShape>,
           ffi.Pointer<ffi.Float>, ffi.Pointer<ffi.Float>),
-      void Function(ffi.Pointer<jolt.CollisionShape>, Float32List,
-          Float32List)>('shape_get_local_bounds', isLeaf: true);
+      void Function(ffi.Pointer<jolt.CollisionShape>, ffi.Pointer<ffi.Float>,
+          ffi.Pointer<ffi.Float>)>('shape_get_local_bounds', isLeaf: true);
 
   Aabb3 get localBounds {
     Aabb3 r = Aabb3();
-    unwrappedGetLocalBounds(_nativeShape, r.min.storage, r.max.storage);
+    var mi = calloc.call<ffi.Float>(3);
+    var ma = calloc.call<ffi.Float>(3);
+    unwrappedGetLocalBounds(_nativeShape, mi, ma);
+    r.min.x = mi[0];
+    r.min.y = mi[1];
+    r.min.z = mi[2];
+    r.max.x = ma[0];
+    r.max.y = ma[1];
+    r.max.z = ma[2];
+    calloc.free(mi);
+    calloc.free(ma);
     return r;
   }
 }
@@ -182,16 +197,22 @@ class ConvexHullShape extends ConvexShape {
           ffi.Pointer<jolt.ConvexShapeConfig>, ffi.Pointer<ffi.Float>, ffi.Int),
       ffi.Pointer<jolt.CollisionShape> Function(
           ffi.Pointer<jolt.ConvexShapeConfig>,
-          Float32List,
+          ffi.Pointer<ffi.Float>,
           int)>('create_convex_shape', isLeaf: true);
 
   factory ConvexHullShape(ConvexHullShapeSettings settings) {
     ffi.Pointer<jolt.ConvexShapeConfig> config =
         calloc.allocate(ffi.sizeOf<jolt.ConvexShapeConfig>());
     settings._copyToConvexShapeConfig(config);
-    final nativeShape = unwrappedCreateConvexShape(
-        config, settings.points, settings.points.length ~/ 3);
+    ffi.Pointer<ffi.Float> points =
+        calloc.allocate<ffi.Float>(settings.points.length);
+    for (int i = 0; i < settings.points.length; i++) {
+      points[i] = settings.points[i];
+    }
+    final nativeShape =
+        unwrappedCreateConvexShape(config, points, settings.points.length ~/ 3);
     calloc.free(config);
+    calloc.free(points);
     return ConvexHullShape._(nativeShape);
   }
 }
@@ -269,15 +290,24 @@ class MeshShape extends Shape {
   static final unwrappedCreateMeshShape = jolt.dylib.lookupFunction<
       ffi.Pointer<jolt.CollisionShape> Function(
           ffi.Pointer<ffi.Float>, ffi.Int, ffi.Pointer<ffi.Uint32>, ffi.Int),
-      ffi.Pointer<jolt.CollisionShape> Function(Float32List, int, Uint32List,
-          int)>('create_mesh_shape', isLeaf: true);
+      ffi.Pointer<jolt.CollisionShape> Function(ffi.Pointer<ffi.Float>, int,
+          ffi.Pointer<ffi.Uint32>, int)>('create_mesh_shape', isLeaf: true);
 
   factory MeshShape(MeshShapeSettings settings) {
-    final nativeShape = unwrappedCreateMeshShape(
-        settings.vertices,
-        settings.vertices.length ~/ 3,
-        settings.indices,
-        settings.indices.length ~/ 3);
+    ffi.Pointer<ffi.Float> vertices =
+        calloc.allocate<ffi.Float>(settings.vertices.length);
+    ffi.Pointer<ffi.Uint32> indices =
+        calloc.allocate<ffi.Uint32>(settings.indices.length);
+    for (int i = 0; i < settings.vertices.length; i++) {
+      vertices[i] = settings.vertices[i];
+    }
+    for (int i = 0; i < settings.indices.length; i++) {
+      indices[i] = settings.indices[i];
+    }
+    final nativeShape = unwrappedCreateMeshShape(vertices,
+        settings.vertices.length ~/ 3, indices, settings.indices.length ~/ 3);
+    calloc.free(vertices);
+    calloc.free(indices);
     return MeshShape._(nativeShape);
   }
 }
