@@ -4,3 +4,6 @@
 [submodule "deps/v-hacd"]
 	path = deps/v-hacd
 	url = https://github.com/kmammou/v-hacd.git
+[submodule "deps/flutter_scene"]
+	path = deps/flutter_scene
+	url = git@github.com:bdero/flutter_scene.git

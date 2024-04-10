@@ -12,7 +12,9 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.2
   flutter_gpu:
-    path: ../engine/src/flutter/lib/gpu
+    sdk: flutter
+  flutter_scene_importer:
+    path: ./deps/flutter_scene/importer
   vector_math: ^2.1.4
   ffi:
   oxygen: ^0.2.0

@@ -4,6 +4,8 @@ import 'package:cabal/physics/physics.dart' as phys;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:oxygen/oxygen.dart' as oxy;
 import 'package:vector_math/vector_math.dart' as vm;
+import 'package:flutter_scene_importer/importer.dart';
+import 'package:flutter_scene_importer/flatbuffer.dart' as fb;
 
 import 'package:cabal/base/components/camera_component.dart';
 import 'package:cabal/base/components/mesh_component.dart';

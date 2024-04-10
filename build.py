@@ -45,8 +45,15 @@ gen_directory = os.path.join(script_directory, 'gen')
 print('CONFIG_END')
 
 def build_cmake(dir):
-  subprocess.call(['cmake', '.'], cwd=os.path.join(script_directory, dir));
+  subprocess.call(['cmake', '.'], cwd=os.path.join(script_directory, dir))
   subprocess.call(['make', '-j', '4'], cwd=os.path.join(script_directory, dir))
+
+def build_scene_importer():
+  subprocess.call(['deps/flutter_scene/copy_flutter_gpu.sh'], shell=True)
+  subprocess.call(['deps/flutter_scene/importer/build.sh'], shell=True)
+
+def import_model(input_file, output_file):
+  subprocess.call(['deps/flutter_scene/importer/importer.sh {} {}'.format(input_file, output_file)], shell=True)
 
 def inputs_newer(inputs, output):
   output_path = os.path.join(script_directory, output)
@@ -128,6 +135,8 @@ def build_cabal(argv):
   build_shader_bundle('cabal', [
     ('Texture', ShaderType.VERTEX, 'shaders/flutter_gpu_texture.vert'),
     ('Texture', ShaderType.FRAGMENT, 'shaders/flutter_gpu_texture.frag')])
+  build_scene_importer()
+  import_model('deps/flutter_scene/examples/assets_src/flutter_logo_baked.glb', 'gen/flutter_logo_baked.model')
 
 if __name__ == '__main__':
   os.chdir(script_directory)
